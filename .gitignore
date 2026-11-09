@@ -4,3 +4,9 @@ toolkitty-exports/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# local recording sources (narration, demo project); finished GIF/MP4 go to docs/assets
+docs/launch-media/
+
+# local review material (handoff packages, test logs, translation review tables); holds machine paths
+docs/reviews/

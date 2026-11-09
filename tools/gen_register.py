@@ -1,0 +1,1190 @@
+"""Generate toolkit/hooks/register.tsx from the handlers each feature file exports.
+
+Every shared event is registered once; its hook calls each feature's handler
+in turn (unrolled: the engine only lets `$` be passed to a named import).
+"""
+import pathlib
+import re
+import sys
+
+root = pathlib.Path(sys.argv[1])
+features_dir = root / "features"
+
+ORDER_FIRST = {
+    # deny-capable checks run before observers
+    "beforeToolCall": ["branch-lock", "protect-secrets"],
+    "beforeBashCall": ["dangerous-commands"],
+    # mask secrets before anything logs or trims the output
+    "afterBashCall": ["secret-mask", "output-trimmer", "bash-log"],
+    # expand snippets, then record what was sent
+    "onPromptSubmit": ["prompt-enhancer", "budget-guard", "prompt-snippets", "prompt-history"],
+    # the task pulse is the band's first line
+    "renderBand": ["task-pulse", "model-indicator", "cost-meter", "daily-total", "error-counter", "uncommitted-reminder"],
+}
+
+HANDLERS = [
+    "onSessionStart", "onTurnStart", "onTurnComplete", "onMeasure", "afterToolCheck",
+    "beforeToolCall", "afterToolCall", "beforeBashCall", "afterBashCall",
+    "beforeEditCall", "afterEditCall", "onPromptSubmit", "onPromptCompose", "renderBand", "renderDetail", "renderChip",
+]
+
+
+def camel(slug: str) -> str:
+    parts = slug.split("-")
+    return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+
+files = sorted(features_dir.glob("*.tsx"))
+exports: dict[str, dict[str, bool]] = {}
+rewriters: set[str] = set()  # features whose onTurnComplete takes and returns the result
+for f in files:
+    text = f.read_text(encoding="utf-8")
+    names = set(re.findall(r"^export (?:async )?function (\w+)\(", text, re.M))
+    unknown = names - set(HANDLERS) - {"register", "isSoundOn", "setCatalog", "openAdvisor", "buildProfileMap", "isProfileName", "openHandoff", "scorePrompt", "templateRewrite", "supportFooter", "dismissSupport"}
+    if unknown:
+        print(f"WARNING {f.name}: unexpected exports {sorted(unknown)}")
+    exports[f.stem] = {n: (n in names) for n in HANDLERS + ["register"]}
+    m = re.search(r"^export async function onTurnComplete\(([^)]*)\)", text, re.M)
+    if m and m.group(1).count(",") >= 2:
+        rewriters.add(f.stem)
+
+by_handler: dict[str, list[str]] = {h: [] for h in HANDLERS + ["register"]}
+for slug, has in exports.items():
+    for h, present in has.items():
+        if present:
+            by_handler[h].append(slug)
+for h, first in ORDER_FIRST.items():
+    rest = [s for s in by_handler[h] if s not in first]
+    by_handler[h] = [s for s in first if s in by_handler[h]] + rest
+
+for h in HANDLERS + ["register"]:
+    print(f"{h:16} {len(by_handler[h]):2}  {' '.join(by_handler[h])}")
+
+# slash commands each feature registers (for the detail pane)
+commands: dict[str, list[str]] = {}
+for f in files:
+    text = f.read_text(encoding="utf-8")
+    consts = dict(re.findall(r"const (\w+) = '([^']+)'", text))
+    names = []
+    for m in re.finditer(r"command\.register\(\{\s*name:\s*([^,\n]+)", text):
+        raw = m.group(1).strip().strip("'\"")
+        names.append(consts.get(raw, raw))
+    commands[f.stem] = sorted(set(names))
+
+# every state slot id the sources declare (for the perf pane)
+slot_ids: set[str] = set()
+for f in [features_dir.parent / 'core.ts', features_dir.parent / 'signals.ts', features_dir.parent / 'evidence.ts', *files]:
+    if f.exists():
+        slot_ids.update(re.findall(r"key: 'slot', id: '([^']+)'", f.read_text(encoding='utf-8')))
+slot_ids.update(['band-open', 'detail-feature', 'notices', 'sb-query', 'sb-letter', 'sb-lang-open'])
+
+# The panes each feature opens: `$.ui.open({ id: X` where X is a literal or a `const NAME = '...'` of the same file.
+# An id counts for a feature when that file also draws it (`component: 'Pane', requestId: X`), or when no other
+# file draws it (safety-receipt opens `incidents`, which the incidents feature draws). Toolkitty's own panes are left out.
+OPEN_RE = r"\$\.ui\.open\(\s*(?:[^{}]*\{\s*)?id:\s*([^,}\s]+)"
+RENDER_RE = r"component:\s*'Pane',\s*requestId:\s*([^\s},]+)"
+
+
+def resolve_ids(text: str, pattern: str) -> list[str]:
+    consts = dict(re.findall(r"^\s*const (\w+) = '([^']+)'", text, re.M))
+    found: list[str] = []
+    for m in re.finditer(pattern, text):
+        raw = m.group(1).rstrip(",")
+        value = raw.strip("'") if raw.startswith("'") else consts.get(raw)
+        if value is not None and value not in found:
+            found.append(value)
+    return found
+
+
+opened_by: dict[str, list[str]] = {}
+drawn_by: dict[str, set[str]] = {}
+for f in files:
+    text = f.read_text(encoding="utf-8")
+    opened_by[f.stem] = resolve_ids(text, OPEN_RE)
+    drawn_by[f.stem] = set(resolve_ids(text, RENDER_RE))
+
+feature_panes: dict[str, list[str]] = {}
+for slug, opened in opened_by.items():
+    keep = [
+        pid for pid in opened
+        if not pid.startswith("toolkitty")
+        and (pid in drawn_by[slug] or not any(pid in drawn for other, drawn in drawn_by.items() if other != slug))
+    ]
+
+    def rank(pid: str, slug: str = slug) -> int:
+        if pid == slug:
+            return 0
+        return 1 if (pid in slug or slug in pid) else 2
+
+    keep.sort(key=lambda pid, opened=opened: (rank(pid), opened.index(pid)))
+    if keep:
+        feature_panes[slug] = keep
+
+# features a press can show in the detail pane
+detail_slugs = sorted(set(by_handler["renderBand"]) | set(by_handler["renderChip"]) | set(by_handler["renderDetail"]))
+
+imports = []
+for slug in sorted(exports):
+    names = [h for h in HANDLERS + ["register"] if exports[slug][h]]
+    if "export function setCatalog" in (features_dir / f"{slug}.tsx").read_text(encoding="utf-8"):
+        names.append("setCatalog")
+    if not names:
+        continue
+    specs = ", ".join(f"{n} as {camel(slug)}_{n}" for n in names)
+    imports.append(f"import {{ {specs} }} from './features/{slug}'")
+
+
+def alias(slug: str, h: str) -> str:
+    return f"{camel(slug)}_{h}"
+
+
+def lines_observe(h: str, indent: str = "    ") -> str:
+    return "\n".join(
+        f"{indent}await guard($, '{slug}', () => {alias(slug, h)}($, e))" for slug in by_handler[h]
+    )
+
+
+def lines_before(h: str) -> str:
+    out = []
+    for slug in by_handler[h]:
+        out.append(f"    denied = await guardBefore($, '{slug}', () => {alias(slug, h)}($, e))")
+        out.append(f"    if (denied !== undefined) return denied")
+    return "\n".join(out)
+
+
+def lines_after(h: str) -> str:
+    return "\n".join(
+        f"    result = await guardAfter($, '{slug}', result, () => {alias(slug, h)}($, e, result))"
+        for slug in by_handler[h]
+    )
+
+
+body = f"""import {{ atom, read, update }} from 'claude-code'
+import type {{ Atom, EngineInterface, Register, RenderElement }} from 'claude-code'
+
+import {{ LANGS, LANG_NAMES, LOCALES, PANE_ID, clockText, isOn, language, loadLanguage, loadNoticePrefs, nextLanguage, notice, noticePrefs, pick, setLanguage, setNoticePrefs, storeGet, storeSet, t }} from './core'
+import type {{ Notices }} from './core'
+import {{ LEVEL_COLOR, emptyState, listRow, paneHeader, sectionTitle, sortChips }} from './ui'
+import type {{ Chip }} from './ui'
+import {{ exportsCommand, exportsPane, sharePane }} from './exports'
+import type {{ BandInput, Feature, Input, Lang, Output, ToolCallOutput }} from './core'
+import {{ features, groups }} from './features/index'
+
+// GENERATED by scratchpad/gen_register.py from the handlers the feature files
+// export. The engine lets one module register an event without a matcher only
+// once, so each shared event has one hook here that calls every feature's
+// handler in turn. Hooks unique to a feature (its commands, its pane) stay in
+// that feature's own `register`, called below.
+{chr(10).join(imports)}
+
+const TITLE = 'Toolkitty'
+
+const T = {{
+  loaded: {{ en: 'Toolkitty loaded: {{n}} features', he: 'Toolkitty נטען: {{n}} שכלולים', es: 'Toolkitty cargado: {{n}} funciones', fr: 'Toolkitty chargé : {{n}} fonctions', ru: 'Toolkitty загружен: {{n}} функций', zh: '已加载 Toolkitty：{{n}} 个功能', ja: 'Toolkitty を読み込みました：{{n}} 機能', pt: 'Toolkitty carregado: {{n}} recursos', de: 'Toolkitty geladen: {{n}} Funktionen', ko: 'Toolkitty 로드됨: 기능 {{n}}개' }},
+  notPlaced: {{ en: ' (pane not drawn: /toolkitty opens it)', he: ' (הלוח לא צויר: /toolkitty פותח אותו)', es: ' (panel no dibujado: /toolkitty lo abre)', fr: ' (panneau non affiché : /toolkitty l’ouvre)', ru: ' (панель не показана: /toolkitty откроет её)', zh: ' (面板未显示：/toolkitty 可打开)', ja: ' (パネル未表示：/toolkitty で開けます)', pt: ' (painel não exibido: /toolkitty o abre)', de: ' (Panel nicht gezeichnet: /toolkitty öffnet es)', ko: ' (패널이 그려지지 않음: /toolkitty으로 열기)' }},
+  command: {{ en: 'Opens the Toolkitty switchboard: turn each feature on or off', he: 'פותח את לוח המתגים של ה-Toolkitty: הפעלה וכיבוי של כל שכלול', es: 'Abre el panel del Toolkitty: activa o desactiva cada función', fr: 'Ouvre le tableau du Toolkitty : active ou désactive chaque fonction', ru: 'Открывает панель Toolkitty: включение и выключение каждой функции', zh: '打开 Toolkitty 开关面板：逐个开启或关闭功能', ja: 'Toolkitty のスイッチボードを開きます：各機能のオン/オフ', pt: 'Abre o painel de chaves do Toolkitty: ative ou desative cada recurso', de: 'Öffnet die Toolkitty-Schalttafel: jede Funktion ein- oder ausschalten', ko: 'Toolkitty 스위치보드를 엽니다: 각 기능을 켜거나 끕니다' }},
+  opened: {{ en: 'Toolkitty pane opened.', he: 'לוח ה-Toolkitty נפתח.', es: 'Panel del Toolkitty abierto.', fr: 'Panneau du Toolkitty ouvert.', ru: 'Панель Toolkitty открыта.', zh: 'Toolkitty 面板已打开。', ja: 'Toolkitty パネルを開きました。', pt: 'Painel do Toolkitty aberto.', de: 'Toolkitty-Panel geöffnet.', ko: 'Toolkitty 패널이 열렸습니다.' }},
+  active: {{ en: '{{on}}/{{all}} active', he: '{{on}}/{{all}} פעילים', es: '{{on}}/{{all}} activas', fr: '{{on}}/{{all}} actives', ru: '{{on}}/{{all}} активны', zh: '{{on}}/{{all}} 已启用', ja: '{{on}}/{{all}} 有効', pt: '{{on}}/{{all}} ativos', de: '{{on}}/{{all}} aktiv', ko: '{{on}}/{{all}} 활성' }},
+  allOn: {{ en: 'All on', he: 'הפעל הכל', es: 'Activar todo', fr: 'Tout activer', ru: 'Включить всё', zh: '全部启用', ja: 'すべてオン', pt: 'Ativar tudo', de: 'Alle an', ko: '모두 켜기' }},
+  allOff: {{ en: 'All off', he: 'כבה הכל', es: 'Desactivar todo', fr: 'Tout désactiver', ru: 'Выключить всё', zh: '全部停用', ja: 'すべてオフ', pt: 'Desativar tudo', de: 'Alle aus', ko: '모두 끄기' }},
+  hint: {{ en: 'Press a row to turn a feature on or off. /toolkitty reopens this pane.', he: 'לחיצה על שורה מפעילה או מכבה את השכלול. /toolkitty פותח את הלוח מחדש.', es: 'Pulsa una fila para activar o desactivar la función. /toolkitty reabre este panel.', fr: 'Appuyez sur une ligne pour activer ou désactiver la fonction. /toolkitty rouvre ce panneau.', ru: 'Нажмите на строку, чтобы включить или выключить функцию. /toolkitty снова откроет панель.', zh: '点击某一行即可开启或关闭该功能。/toolkitty 可重新打开此面板。', ja: '行を押すと機能のオン/オフを切り替えます。/toolkitty でこのパネルを開き直せます。', pt: 'Pressione uma linha para ativar ou desativar um recurso. /toolkitty reabre este painel.', de: 'Drücke auf eine Zeile, um eine Funktion ein- oder auszuschalten. /toolkitty öffnet dieses Panel erneut.', ko: '행을 눌러 기능을 켜거나 끕니다. /toolkitty으로 이 패널을 다시 열 수 있습니다.' }},
+  bandMore: {{ en: '⋯ {{n}} more', he: '⋯ עוד {{n}}', es: '⋯ {{n}} más', fr: '⋯ {{n}} de plus', ru: '⋯ ещё {{n}}', zh: '⋯ 另有 {{n}} 项', ja: '⋯ ほか {{n}} 件', pt: '⋯ mais {{n}}', de: '⋯ {{n}} weitere', ko: '⋯ {{n}}개 더' }},
+  detailNothing: {{ en: 'Nothing more to show yet.', he: 'אין עוד מה להראות בינתיים.', es: 'Nada más que mostrar por ahora.', fr: 'Rien de plus à afficher pour le moment.', ru: 'Пока больше нечего показать.', zh: '暂时没有更多内容可显示。', ja: '今のところ、これ以上表示するものはありません。', pt: 'Nada mais para mostrar por enquanto.', de: 'Noch nichts weiter anzuzeigen.', ko: '아직 더 보여 줄 내용이 없습니다.' }},
+  detailCommands: {{ en: 'Commands', he: 'פקודות', es: 'Comandos', fr: 'Commandes', ru: 'Команды', zh: '命令', ja: 'コマンド', pt: 'Comandos', de: 'Befehle', ko: '명령' }},
+  detailOff: {{ en: 'Turn off', he: 'כבה', es: 'Desactivar', fr: 'Désactiver', ru: 'Выключить', zh: '停用', ja: 'オフにする', pt: 'Desativar', de: 'Ausschalten', ko: '끄기' }},
+  detailOn: {{ en: 'Turn on', he: 'הפעל', es: 'Activar', fr: 'Activer', ru: 'Включить', zh: '启用', ja: 'オンにする', pt: 'Ativar', de: 'Einschalten', ko: '켜기' }},
+  detailClose: {{ en: 'Close', he: 'סגור', es: 'Cerrar', fr: 'Fermer', ru: 'Закрыть', zh: '关闭', ja: '閉じる', pt: 'Fechar', de: 'Schließen', ko: '닫기' }},
+  saveDefault: {{ en: 'Save as my default', he: 'שמור כברירת מחדל שלי', es: 'Guardar como mi predeterminado', fr: 'Enregistrer comme défaut', ru: 'Сохранить как мой набор', zh: '保存为我的默认', ja: '自分のデフォルトとして保存', pt: 'Salvar como meu padrão', de: 'Als meinen Standard speichern', ko: '내 기본값으로 저장' }},
+  restoreDefault: {{ en: 'Restore my default', he: 'שחזר ברירת מחדל שלי', es: 'Restaurar mi predeterminado', fr: 'Restaurer mon défaut', ru: 'Вернуть мой набор', zh: '恢复我的默认', ja: '自分のデフォルトに戻す', pt: 'Restaurar meu padrão', de: 'Meinen Standard wiederherstellen', ko: '내 기본값 복원' }},
+  factory: {{ en: 'Factory defaults', he: 'איפוס למפעל', es: 'Valores de fábrica', fr: 'Réglages d’usine', ru: 'Заводские настройки', zh: '恢复出厂设置', ja: '工場出荷時の設定', pt: 'Padrões de fábrica', de: 'Werkseinstellungen', ko: '공장 기본값' }},
+  savedDefault: {{ en: 'Saved: this set of features is now your default.', he: 'נשמר: סט הפיצ׳רים הזה הוא עכשיו ברירת המחדל שלך.', es: 'Guardado: este conjunto de funciones es ahora tu predeterminado.', fr: 'Enregistré : cet ensemble de fonctions est désormais votre défaut.', ru: 'Сохранено: этот набор функций теперь ваш по умолчанию.', zh: '已保存：这组功能现在是你的默认设置。', ja: '保存しました。この機能セットが新しいデフォルトになりました。', pt: 'Salvo: este conjunto de recursos agora é o seu padrão.', de: 'Gespeichert: Diese Funktionsauswahl ist jetzt dein Standard.', ko: '저장됨: 이 기능 구성이 이제 기본값입니다.' }},
+  detailSince: {{ en: 'Details are recorded since the last load ({{since}} ago).', he: 'הפרטים נרשמים מאז הטעינה האחרונה (לפני {{since}}).', es: 'Los detalles se registran desde la última carga (hace {{since}}).', fr: 'Les détails sont enregistrés depuis le dernier chargement (il y a {{since}}).', ru: 'Подробности записываются с последней загрузки ({{since}} назад).', zh: '详情自上次加载起记录（{{since}}前）。', ja: '詳細は前回の読み込み以降の分です（{{since}}前）。', pt: 'Os detalhes são registrados desde o último carregamento (há {{since}}).', de: 'Details werden seit dem letzten Laden erfasst (vor {{since}}).', ko: '상세 내용은 마지막 로드 이후부터 기록됩니다({{since}} 전).' }},
+  undoAll: {{ en: '↶ Undo', he: '↶ בטל', es: '↶ Deshacer', fr: '↶ Annuler', ru: '↶ Отменить', zh: '↶ 撤销', ja: '↶ 元に戻す', pt: '↶ Desfazer', de: '↶ Rückgängig', ko: '↶ 실행 취소' }},
+  noticesTitle: {{ en: 'Notices', he: 'התראות', es: 'Avisos', fr: 'Notifications', ru: 'Уведомления', zh: '通知', ja: 'お知らせ', pt: 'Avisos', de: 'Hinweise', ko: '알림' }},
+  noticesClear: {{ en: 'Clear', he: 'נקה', es: 'Limpiar', fr: 'Effacer', ru: 'Очистить', zh: '清除', ja: 'クリア', pt: 'Limpar', de: 'Leeren', ko: '지우기' }},
+  noticesEmpty: {{ en: 'No notices yet.', he: 'אין עדיין התראות.', es: 'Aún no hay avisos.', fr: 'Aucune notification pour le moment.', ru: 'Уведомлений пока нет.', zh: '还没有通知。', ja: 'お知らせはまだありません。', pt: 'Ainda não há avisos.', de: 'Noch keine Hinweise.', ko: '아직 알림이 없습니다.' }},
+  noticesHint: {{ en: 'Everything Toolkitty would have said shows up here; only prevented disasters and limits still pop up.', he: 'כל מה שה-Toolkitty היה אומר מופיע כאן; רק אסונות שנמנעו ומכסות עדיין קופצים.', es: 'Todo lo que el toolkitty habría dicho aparece aquí; solo los desastres evitados y los límites siguen apareciendo.', fr: 'Tout ce que le toolkitty aurait dit apparaît ici ; seuls les désastres évités et les limites s’affichent encore.', ru: 'Всё, что toolkitty хотел бы сообщить, появляется здесь; всплывают только предотвращённые беды и лимиты.', zh: 'Toolkitty 本想说的一切都会显示在这里；只有被避免的灾难和限额才仍会弹出。', ja: 'Toolkitty が伝えたかったことはすべてここに表示されます。防いだ災難と上限だけは引き続きポップアップします。', pt: 'Tudo o que o toolkitty diria aparece aqui; só desastres evitados e limites ainda aparecem em pop-up.', de: 'Alles, was das Toolkitty gesagt hätte, erscheint hier; nur verhinderte Katastrophen und Limits poppen weiterhin auf.', ko: 'Toolkitty이 하려던 모든 말이 여기에 표시되며, 막아 낸 사고와 한도만 계속 팝업으로 뜹니다.' }},
+  noticesCount: {{ en: '{{n}} notices', he: '{{n}} התראות', es: '{{n}} avisos', fr: '{{n}} notifications', ru: 'уведомлений: {{n}}', zh: '{{n}} 条通知', ja: 'お知らせ {{n}} 件', pt: '{{n}} avisos', de: '{{n}} Hinweise', ko: '알림 {{n}}개' }},
+  noticesQuiet: {{ en: 'Quiet mode', he: 'מצב שקט', es: 'Modo silencioso', fr: 'Mode silencieux', ru: 'Тихий режим', zh: '静音模式', ja: 'サイレントモード', pt: 'Modo silencioso', de: 'Ruhemodus', ko: '조용한 모드' }},
+  noticesQuietOn: {{ en: 'quiet', he: 'שקט', es: 'silencio', fr: 'silence', ru: 'тихо', zh: '静音', ja: '静か', pt: 'silêncio', de: 'ruhig', ko: '조용' }},
+  noticesQuietOff: {{ en: 'Quiet mode off', he: 'בטל מצב שקט', es: 'Desactivar silencio', fr: 'Désactiver le silence', ru: 'Выключить тихий режим', zh: '关闭静音模式', ja: 'サイレントモードをオフ', pt: 'Desativar silêncio', de: 'Ruhemodus aus', ko: '조용한 모드 끄기' }},
+  noticesToastFrom: {{ en: 'Pop up from: {{level}}', he: 'קופץ מרמה: {{level}}', es: 'Emergente desde: {{level}}', fr: 'Pop-up à partir de : {{level}}', ru: 'Всплывать от: {{level}}', zh: '从该级别弹出：{{level}}', ja: 'ポップアップ開始レベル：{{level}}', pt: 'Pop-up a partir de: {{level}}', de: 'Pop-up ab: {{level}}', ko: '팝업 시작 수준: {{level}}' }},
+  noticesOpened: {{ en: 'Notices pane opened.', he: 'פאנל ההתראות נפתח.', es: 'Panel de avisos abierto.', fr: 'Panneau des notifications ouvert.', ru: 'Панель уведомлений открыта.', zh: '通知面板已打开。', ja: 'お知らせパネルを開きました。', pt: 'Painel de avisos aberto.', de: 'Hinweise-Panel geöffnet.', ko: '알림 패널이 열렸습니다.' }},
+  noticesCommand: {{ en: 'Opens the Toolkitty notification center', he: 'פותח את מרכז ההתראות של ה-Toolkitty', es: 'Abre el centro de avisos del Toolkitty', fr: 'Ouvre le centre de notifications du Toolkitty', ru: 'Открывает центр уведомлений Toolkitty', zh: '打开 Toolkitty 通知中心', ja: 'Toolkitty の通知センターを開きます', pt: 'Abre a central de avisos do Toolkitty', de: 'Öffnet das Toolkitty-Benachrichtigungscenter', ko: 'Toolkitty 알림 센터를 엽니다' }},
+  homeCommand: {{ en: 'Opens the Toolkitty home: the session at a glance', he: 'פותח את הבית של ה-Toolkitty: הסשן במבט אחד', es: 'Abre el inicio del Toolkitty: la sesión de un vistazo', fr: 'Ouvre l’accueil du Toolkitty : la session en un coup d’œil', ru: 'Открывает главную Toolkitty: сессия одним взглядом', zh: '打开 Toolkitty 首页：会话一览', ja: 'Toolkitty のホームを開きます：セッションを一目で', pt: 'Abre o início do Toolkitty: a sessão em um relance', de: 'Öffnet die Toolkitty-Startseite: die Sitzung auf einen Blick', ko: 'Toolkitty 홈을 엽니다: 세션을 한눈에' }},
+  homeOpened: {{ en: 'Toolkitty home opened.', he: 'הבית של ה-Toolkitty נפתח.', es: 'Inicio del Toolkitty abierto.', fr: 'Accueil du Toolkitty ouvert.', ru: 'Главная Toolkitty открыта.', zh: 'Toolkitty 首页已打开。', ja: 'Toolkitty のホームを開きました。', pt: 'Início do Toolkitty aberto.', de: 'Toolkitty-Startseite geöffnet.', ko: 'Toolkitty 홈이 열렸습니다.' }},
+  homeSwitchboard: {{ en: 'Switchboard', he: 'לוח מתגים', es: 'Panel', fr: 'Tableau', ru: 'Переключатели', zh: '开关面板', ja: 'スイッチボード', pt: 'Painel de chaves', de: 'Schalttafel', ko: '스위치보드' }},
+  homeHelp: {{ en: 'Help', he: 'עזרה', es: 'Ayuda', fr: 'Aide', ru: 'Справка', zh: '帮助', ja: 'ヘルプ', pt: 'Ajuda', de: 'Hilfe', ko: '도움말' }},
+  homeHelpHint: {{ en: 'Type /toolkitty help <question>', he: 'הקלד /toolkitty help <שאלה>', es: 'Escribe /toolkitty help <pregunta>', fr: 'Tapez /toolkitty help <question>', ru: 'Введите /toolkitty help <вопрос>', zh: '输入 /toolkitty help <问题>', ja: '/toolkitty help <質問> と入力', pt: 'Digite /toolkitty help <pergunta>', de: 'Tippe /toolkitty help <Frage>', ko: '/toolkitty help <질문>을 입력하세요' }},
+  homeNow: {{ en: 'Right now', he: 'עכשיו', es: 'Ahora', fr: 'En ce moment', ru: 'Сейчас', zh: '此刻', ja: '今すぐ', pt: 'Agora', de: 'Gerade jetzt', ko: '지금' }},
+  homeRecent: {{ en: 'Recent notices', he: 'התראות אחרונות', es: 'Avisos recientes', fr: 'Notifications récentes', ru: 'Недавние уведомления', zh: '最近通知', ja: '最近のお知らせ', pt: 'Avisos recentes', de: 'Letzte Hinweise', ko: '최근 알림' }},
+  homeQuiet: {{ en: 'All quiet. Chips appear here as features have something to say.', he: 'שקט. שבבים יופיעו כאן כשלפיצ׳רים יהיה מה להגיד.', es: 'Todo tranquilo. Los indicadores aparecerán cuando las funciones tengan algo que decir.', fr: 'Tout est calme. Les pastilles apparaîtront quand les fonctions auront quelque chose à dire.', ru: 'Всё спокойно. Индикаторы появятся, когда функциям будет что сказать.', zh: '一切平静。功能有话要说时，标签会出现在这里。', ja: '静かです。機能が伝えたいことができると、チップがここに表示されます。', pt: 'Tudo tranquilo. Os indicadores aparecem aqui quando os recursos tiverem algo a dizer.', de: 'Alles ruhig. Chips erscheinen hier, sobald Funktionen etwas zu sagen haben.', ko: '조용합니다. 기능이 할 말이 생기면 칩이 여기에 나타납니다.' }},
+  perfTitle: {{ en: 'Toolkitty performance', he: 'ביצועי ה-Toolkitty', es: 'Rendimiento del Toolkitty', fr: 'Performances du Toolkitty', ru: 'Производительность Toolkitty', zh: 'Toolkitty 性能', ja: 'Toolkitty のパフォーマンス', pt: 'Desempenho do Toolkitty', de: 'Toolkitty-Leistung', ko: 'Toolkitty 성능' }},
+  perfSince: {{ en: 'since load · {{min}} min', he: 'מאז הטעינה · {{min}} דק׳', es: 'desde la carga · {{min}} min', fr: 'depuis le chargement · {{min}} min', ru: 'с загрузки · {{min}} мин', zh: '自加载起 · {{min}} 分钟', ja: '読み込み後 · {{min}} 分', pt: 'desde o carregamento · {{min}} min', de: 'seit dem Laden · {{min}} Min.', ko: '로드 후 · {{min}}분' }},
+  perfCopy: {{ en: 'Copy report', he: 'העתק דוח', es: 'Copiar informe', fr: 'Copier le rapport', ru: 'Копировать отчёт', zh: '复制报告', ja: 'レポートをコピー', pt: 'Copiar relatório', de: 'Bericht kopieren', ko: '보고서 복사' }},
+  perfTokens: {{ en: 'What the model reads because of Toolkitty', he: 'מה המודל קורא בגלל ה-Toolkitty', es: 'Lo que el modelo lee por el toolkitty', fr: 'Ce que le modèle lit à cause du toolkitty', ru: 'Что модель читает из-за toolkitty', zh: '因为 Toolkitty 而被模型读取的内容', ja: 'Toolkitty のためにモデルが読み取る内容', pt: 'O que o modelo lê por causa do toolkitty', de: 'Was das Modell wegen des Toolkittys liest', ko: 'Toolkitty 때문에 모델이 읽는 내용' }},
+  perfCompose: {{ en: 'System prompt sections: {{chars}} chars (~{{tok}} tokens) over {{n}} composes', he: 'סעיפי system prompt: {{chars}} תווים (~{{tok}} טוקנים) ב-{{n}} הרכבות', es: 'Secciones del system prompt: {{chars}} caracteres (~{{tok}} tokens) en {{n}} composiciones', fr: 'Sections du system prompt : {{chars}} caractères (~{{tok}} jetons) sur {{n}} compositions', ru: 'Секции системного промпта: {{chars}} символов (~{{tok}} токенов) за {{n}} сборок', zh: '系统提示词片段：{{chars}} 个字符（约 {{tok}} 个 token），共 {{n}} 次组装', ja: 'システムプロンプトのセクション：{{chars}} 文字（約 {{tok}} トークン）、{{n}} 回の構成', pt: 'Seções do system prompt: {{chars}} caracteres (~{{tok}} tokens) em {{n}} composições', de: 'System-Prompt-Abschnitte: {{chars}} Zeichen (~{{tok}} Tokens) über {{n}} Zusammenstellungen', ko: '시스템 프롬프트 섹션: {{chars}}자(약 {{tok}} 토큰), {{n}}회 구성' }},
+  perfTool: {{ en: 'Tool-result notes: {{chars}} chars (~{{tok}} tokens) over {{n}} tool calls', he: 'הערות על תוצאות כלים: {{chars}} תווים (~{{tok}} טוקנים) ב-{{n}} קריאות', es: 'Notas en resultados de herramientas: {{chars}} caracteres (~{{tok}} tokens) en {{n}} llamadas', fr: 'Notes sur les résultats d’outils : {{chars}} caractères (~{{tok}} jetons) sur {{n}} appels', ru: 'Заметки к результатам инструментов: {{chars}} символов (~{{tok}} токенов) за {{n}} вызовов', zh: '工具结果备注：{{chars}} 个字符（约 {{tok}} 个 token），共 {{n}} 次工具调用', ja: 'ツール結果のメモ：{{chars}} 文字（約 {{tok}} トークン）、ツール呼び出し {{n}} 回', pt: 'Notas nos resultados de ferramentas: {{chars}} caracteres (~{{tok}} tokens) em {{n}} chamadas de ferramentas', de: 'Notizen zu Tool-Ergebnissen: {{chars}} Zeichen (~{{tok}} Tokens) über {{n}} Tool-Aufrufe', ko: '도구 결과 메모: {{chars}}자(약 {{tok}} 토큰), 도구 호출 {{n}}회' }},
+  perfTime: {{ en: 'Time spent in toolkitty handlers', he: 'זמן בתוך ה-handlers של ה-Toolkitty', es: 'Tiempo en los manejadores del toolkitty', fr: 'Temps passé dans les gestionnaires du toolkitty', ru: 'Время в обработчиках toolkitty', zh: 'Toolkitty 处理程序耗时', ja: 'Toolkitty ハンドラーでの所要時間', pt: 'Tempo gasto nos handlers do toolkitty', de: 'Zeit in Toolkitty-Handlern', ko: 'Toolkitty 핸들러에서 쓴 시간' }},
+  perfTotal: {{ en: '{{ms}} ms total over {{calls}} handler calls', he: '{{ms}} מ״ש סה״כ ב-{{calls}} קריאות', es: '{{ms}} ms en total en {{calls}} llamadas', fr: '{{ms}} ms au total sur {{calls}} appels', ru: '{{ms}} мс всего за {{calls}} вызовов', zh: '共 {{ms}} 毫秒，{{calls}} 次处理程序调用', ja: '合計 {{ms}} ms、ハンドラー呼び出し {{calls}} 回', pt: '{{ms}} ms no total em {{calls}} chamadas de handlers', de: '{{ms}} ms gesamt über {{calls}} Handler-Aufrufe', ko: '총 {{ms}}ms, 핸들러 호출 {{calls}}회' }},
+  perfRow: {{ en: '{{calls}} calls · worst {{worst}} ms', he: '{{calls}} קריאות · הגרוע {{worst}} מ״ש', es: '{{calls}} llamadas · peor {{worst}} ms', fr: '{{calls}} appels · pire {{worst}} ms', ru: '{{calls}} вызовов · худший {{worst}} мс', zh: '{{calls}} 次调用 · 最慢 {{worst}} 毫秒', ja: '{{calls}} 回呼び出し · 最大 {{worst}} ms', pt: '{{calls}} chamadas · pior {{worst}} ms', de: '{{calls}} Aufrufe · schlechtester {{worst}} ms', ko: '호출 {{calls}}회 · 최악 {{worst}}ms' }},
+  perfState: {{ en: 'State held in memory', he: 'מצב שמוחזק בזיכרון', es: 'Estado en memoria', fr: 'État conservé en mémoire', ru: 'Состояние в памяти', zh: '内存中保存的状态', ja: 'メモリに保持されている状態', pt: 'Estado mantido na memória', de: 'Im Speicher gehaltener Zustand', ko: '메모리에 보관된 상태' }},
+  perfStateRow: {{ en: '{{kb}} KB in {{slots}} slots · largest {{big}} ({{bigKb}} KB)', he: '{{kb}} KB ב-{{slots}} תאים · הגדול {{big}} ({{bigKb}} KB)', es: '{{kb}} KB en {{slots}} ranuras · mayor {{big}} ({{bigKb}} KB)', fr: '{{kb}} Ko dans {{slots}} emplacements · le plus grand {{big}} ({{bigKb}} Ko)', ru: '{{kb}} КБ в {{slots}} слотах · крупнейший {{big}} ({{bigKb}} КБ)', zh: '{{kb}} KB，{{slots}} 个槽位 · 最大 {{big}}（{{bigKb}} KB）', ja: '{{kb}} KB、{{slots}} スロット · 最大 {{big}}（{{bigKb}} KB）', pt: '{{kb}} KB em {{slots}} slots · maior {{big}} ({{bigKb}} KB)', de: '{{kb}} KB in {{slots}} Slots · größter {{big}} ({{bigKb}} KB)', ko: '{{kb}} KB, 슬롯 {{slots}}개 · 최대 {{big}}({{bigKb}} KB)' }},
+  perfNote: {{ en: 'Tokens are estimated at 4 characters each. Model calls the features make (Haiku) are counted by their own features, not here.', he: 'טוקנים מוערכים לפי 4 תווים לטוקן. קריאות מודל של פיצ׳רים (Haiku) נספרות בפיצ׳רים עצמם, לא כאן.', es: 'Los tokens se estiman a 4 caracteres cada uno. Las llamadas al modelo (Haiku) las cuentan sus propias funciones.', fr: 'Jetons estimés à 4 caractères chacun. Les appels au modèle (Haiku) sont comptés par leurs fonctions.', ru: 'Токены оцениваются по 4 символа. Вызовы модели (Haiku) учитываются самими функциями.', zh: 'token 按每个 4 个字符估算。各功能自己发起的模型调用（Haiku）由它们各自的功能统计，不在此处。', ja: 'トークンは 1 つあたり 4 文字として推定しています。機能が行うモデル呼び出し（Haiku）は、それぞれの機能側で集計され、ここには含まれません。', pt: 'Os tokens são estimados em 4 caracteres cada. As chamadas de modelo feitas pelos recursos (Haiku) são contadas pelos próprios recursos, não aqui.', de: 'Tokens werden mit je 4 Zeichen geschätzt. Modellaufrufe der Funktionen (Haiku) zählen die Funktionen selbst, nicht diese Ansicht.', ko: '토큰은 각각 4자로 추정합니다. 기능이 수행하는 모델 호출(Haiku)은 각 기능에서 따로 집계하며 여기에 포함되지 않습니다.' }},
+  perfCommand: {{ en: 'Toolkitty resource usage: time per feature, context added, state size', he: 'צריכת משאבים של ה-Toolkitty: זמן לפיצ׳ר, הקשר שנוסף, גודל מצב', es: 'Uso de recursos del Toolkitty', fr: 'Ressources utilisées par le Toolkitty', ru: 'Ресурсы Toolkitty', zh: 'Toolkitty 资源使用情况：各功能耗时、新增上下文、状态大小', ja: 'Toolkitty のリソース使用状況：機能ごとの時間、追加されたコンテキスト、状態のサイズ', pt: 'Uso de recursos do Toolkitty: tempo por recurso, contexto adicionado, tamanho do estado', de: 'Toolkitty-Ressourcenverbrauch: Zeit pro Funktion, hinzugefügter Kontext, Zustandsgröße', ko: 'Toolkitty 리소스 사용량: 기능별 시간, 추가된 컨텍스트, 상태 크기' }},
+  exportsCommand: {{ en: 'List the files Toolkitty saved, open their folder, or change it', he: 'מציג את הקבצים שה-Toolkitty שמר, ופותח או משנה את התיקייה שלהם', es: 'Lista los archivos que guardó el toolkitty y abre o cambia su carpeta', fr: 'Liste les fichiers enregistrés par le toolkitty, ouvre ou change leur dossier', ru: 'Показывает файлы, сохранённые toolkitty, и открывает или меняет их папку', zh: '列出 Toolkitty 保存的文件，并可打开或更改其文件夹', ja: 'Toolkitty が保存したファイルを一覧表示し、フォルダーを開く／変更する', pt: 'Lista os arquivos salvos pelo toolkitty e abre ou altera a pasta deles', de: 'Listet die vom Toolkitty gespeicherten Dateien und öffnet oder ändert ihren Ordner', ko: 'Toolkitty이 저장한 파일을 나열하고 폴더를 열거나 변경' }},
+  perfOpened: {{ en: 'Performance pane opened.', he: 'פאנל הביצועים נפתח.', es: 'Panel de rendimiento abierto.', fr: 'Panneau des performances ouvert.', ru: 'Панель производительности открыта.', zh: '性能面板已打开。', ja: 'パフォーマンスパネルを開きました。', pt: 'Painel de desempenho aberto.', de: 'Leistungs-Panel geöffnet.', ko: '성능 패널이 열렸습니다.' }},
+  bandLess: {{ en: '▴ less', he: '▴ פחות', es: '▴ menos', fr: '▴ moins', ru: '▴ меньше', zh: '▴ 收起', ja: '▴ 折りたたむ', pt: '▴ menos', de: '▴ weniger', ko: '▴ 접기' }},
+  helpIntro: {{ en: 'Toolkitty help', he: 'עזרה ל-Toolkitty', es: 'Ayuda del Toolkitty', fr: 'Aide du Toolkitty', ru: 'Справка Toolkitty', zh: 'Toolkitty 帮助', ja: 'Toolkitty ヘルプ', pt: 'Ajuda do Toolkitty', de: 'Toolkitty-Hilfe', ko: 'Toolkitty 도움말' }},
+  helpNoAnswer: {{ en: 'No answer came back; try again.', he: 'לא התקבלה תשובה; נסה שוב.', es: 'No llegó respuesta; inténtalo de nuevo.', fr: 'Aucune réponse ; réessayez.', ru: 'Ответ не получен; попробуйте снова.', zh: '没有收到回答，请重试。', ja: '回答が返ってきませんでした。もう一度お試しください。', pt: 'Nenhuma resposta voltou; tente novamente.', de: 'Es kam keine Antwort; versuche es erneut.', ko: '응답이 오지 않았습니다. 다시 시도하세요.' }},
+  rowOpen: {{ en: 'Open', he: 'פתח', es: 'Abrir', fr: 'Ouvrir', ru: 'Открыть', zh: '打开', ja: '開く', pt: 'Abrir', de: 'Öffnen', ko: '열기' }},
+  rowShow: {{ en: 'Show', he: 'הצג', es: 'Ver', fr: 'Afficher', ru: 'Показать', zh: '显示', ja: '表示', pt: 'Ver', de: 'Anzeigen', ko: '보기' }},
+  switchedOn: {{ en: '{{title}} is on · opened', he: '{{title}} פועל · נפתח', es: '{{title}} activada · abierta', fr: '{{title}} activée · ouverte', ru: '{{title}} включена · открыта', zh: '{{title}} 已启用 · 已打开', ja: '{{title}} をオンにしました · 開きました', pt: '{{title}} ativado · aberto', de: '{{title}} ist an · geöffnet', ko: '{{title}} 켜짐 · 열림' }},
+  switchedBg: {{ en: '{{title}} is on · works in the background: {{description}}', he: '{{title}} פועל · עובד ברקע: {{description}}', es: '{{title}} activada · funciona en segundo plano: {{description}}', fr: '{{title}} activée · fonctionne en arrière-plan : {{description}}', ru: '{{title}} включена · работает в фоне: {{description}}', zh: '{{title}} 已启用 · 在后台运行：{{description}}', ja: '{{title}} をオンにしました · バックグラウンドで動作：{{description}}', pt: '{{title}} ativado · funciona em segundo plano: {{description}}', de: '{{title}} ist an · läuft im Hintergrund: {{description}}', ko: '{{title}} 켜짐 · 백그라운드에서 동작: {{description}}' }},
+  switchedOff: {{ en: '{{title}} off', he: '{{title}} כבוי', es: '{{title}} desactivada', fr: '{{title}} désactivée', ru: '{{title}} выключена', zh: '{{title}} 已停用', ja: '{{title}} をオフにしました', pt: '{{title}} desativado', de: '{{title}} aus', ko: '{{title}} 꺼짐' }},
+  homeLive: {{ en: 'Live now', he: 'פעילים כעת', es: 'En vivo', fr: 'En direct', ru: 'Сейчас активно', zh: '当前活跃', ja: '現在稼働中', pt: 'Ao vivo', de: 'Gerade aktiv', ko: '지금 활성' }},
+  homeSilent: {{ en: '{{n}} features work silently in the background', he: '{{n}} שכלולים עובדים בשקט ברקע', es: '{{n}} funciones trabajan en silencio en segundo plano', fr: '{{n}} fonctions travaillent en silence en arrière-plan', ru: '{{n}} функций работают тихо в фоне', zh: '{{n}} 个功能在后台静默运行', ja: '{{n}} 個の機能がバックグラウンドで静かに動作中', pt: '{{n}} recursos trabalham em silêncio em segundo plano', de: '{{n}} Funktionen arbeiten still im Hintergrund', ko: '기능 {{n}}개가 백그라운드에서 조용히 동작 중' }},
+  homeSilentOne: {{ en: '1 feature works silently in the background', he: 'שכלול אחד עובד בשקט ברקע', es: '1 función trabaja en silencio en segundo plano', fr: '1 fonction travaille en silence en arrière-plan', ru: 'Одна функция работает тихо в фоне', zh: '1 个功能在后台静默运行', ja: '1 個の機能がバックグラウンドで静かに動作中', pt: '1 recurso trabalha em silêncio em segundo plano', de: '1 Funktion arbeitet still im Hintergrund', ko: '기능 1개가 백그라운드에서 조용히 동작 중' }},
+  failed: {{ en: 'Toolkitty: feature {{id}} failed: {{message}}', he: 'Toolkitty: השכלול {{id}} נכשל: {{message}}', es: 'Toolkitty: la función {{id}} falló: {{message}}', fr: 'Toolkitty : la fonction {{id}} a échoué : {{message}}', ru: 'Toolkitty: функция {{id}} дала сбой: {{message}}', zh: 'Toolkitty：功能 {{id}} 失败：{{message}}', ja: 'Toolkitty：機能 {{id}} が失敗しました：{{message}}', pt: 'Toolkitty: o recurso {{id}} falhou: {{message}}', de: 'Toolkitty: Funktion {{id}} fehlgeschlagen: {{message}}', ko: 'Toolkitty: 기능 {{id}} 실패: {{message}}' }},
+  sbPlaceholder: {{ en: 'Search features…', he: 'חיפוש שכלולים…', es: 'Buscar funciones…', fr: 'Rechercher une fonction…', ru: 'Поиск функций…', zh: '搜索功能…', ja: '機能を検索…', pt: 'Buscar recursos…', de: 'Funktionen suchen…', ko: '기능 검색…' }},
+  sbFind: {{ en: 'Find', he: 'חפש', es: 'Buscar', fr: 'Chercher', ru: 'Найти', zh: '查找', ja: '検索', pt: 'Buscar', de: 'Suchen', ko: '찾기' }},
+  sbAsk: {{ en: 'What do you want to find?', he: 'מה לחפש?', es: '¿Qué quieres buscar?', fr: 'Que cherchez-vous ?', ru: 'Что найти?', zh: '你想找什么？', ja: '何を探しますか？', pt: 'O que você quer encontrar?', de: 'Was möchtest du finden?', ko: '무엇을 찾으시나요?' }},
+  sbAskHeader: {{ en: 'Search', he: 'חיפוש', es: 'Búsqueda', fr: 'Recherche', ru: 'Поиск', zh: '搜索', ja: '検索', pt: 'Busca', de: 'Suche', ko: '검색' }},
+  sbAskClear: {{ en: 'Clear search', he: 'נקה חיפוש', es: 'Borrar búsqueda', fr: 'Effacer la recherche', ru: 'Сбросить поиск', zh: '清除搜索', ja: '検索をクリア', pt: 'Limpar busca', de: 'Suche löschen', ko: '검색 지우기' }},
+  sbAskCancel: {{ en: 'Cancel', he: 'ביטול', es: 'Cancelar', fr: 'Annuler', ru: 'Отмена', zh: '取消', ja: 'キャンセル', pt: 'Cancelar', de: 'Abbrechen', ko: '취소' }},
+  sbMatches: {{ en: '{{n}} matches', he: '{{n}} תוצאות', es: '{{n}} resultados', fr: '{{n}} résultats', ru: 'найдено: {{n}}', zh: '{{n}} 个结果', ja: '{{n}} 件一致', pt: '{{n}} resultados', de: '{{n}} Treffer', ko: '{{n}}개 일치' }},
+  sbMatchOne: {{ en: '1 match', he: 'תוצאה אחת', es: '1 resultado', fr: '1 résultat', ru: 'найдено: 1', zh: '1 个结果', ja: '1 件一致', pt: '1 resultado', de: '1 Treffer', ko: '1개 일치' }},
+  sbNothing: {{ en: "Nothing matches '{{q}}'", he: "שום דבר לא תואם '{{q}}'", es: "Nada coincide con '{{q}}'", fr: "Rien ne correspond à '{{q}}'", ru: "Ничего не найдено по '{{q}}'", zh: "没有与 '{{q}}' 匹配的内容", ja: "'{{q}}' に一致するものはありません", pt: "Nada corresponde a '{{q}}'", de: "Nichts passt zu '{{q}}'", ko: "'{{q}}'와(과) 일치하는 항목이 없습니다" }},
+  sbNothingHint: {{ en: 'Try a title, an id or a slash command.', he: 'נסו כותרת, מזהה או פקודת סלאש.', es: 'Prueba un título, un id o un comando.', fr: 'Essayez un titre, un id ou une commande.', ru: 'Попробуйте название, id или команду.', zh: '试试标题、id 或斜杠命令。', ja: 'タイトル、id、スラッシュコマンドを試してください。', pt: 'Tente um título, um id ou um comando.', de: 'Probiere einen Titel, eine ID oder einen Slash-Befehl.', ko: '제목, id 또는 슬래시 명령을 입력해 보세요.' }},
+  sbClear: {{ en: 'Clear', he: 'נקה', es: 'Limpiar', fr: 'Effacer', ru: 'Очистить', zh: '清除', ja: 'クリア', pt: 'Limpar', de: 'Leeren', ko: '지우기' }},
+  sbGroups: {{ en: 'Groups', he: 'קבוצות', es: 'Grupos', fr: 'Groupes', ru: 'Группы', zh: '分组', ja: 'グループ', pt: 'Grupos', de: 'Gruppen', ko: '그룹' }},
+  sbAz: {{ en: 'A–Z', he: 'א–ת', es: 'A–Z', fr: 'A–Z', ru: 'А–Я', zh: 'A–Z', ja: 'A–Z', pt: 'A–Z', de: 'A–Z', ko: 'A–Z' }},
+  sbLetterStatus: {{ en: 'starts with {{letter}}', he: 'מתחיל ב-{{letter}}', es: 'empieza con {{letter}}', fr: 'commence par {{letter}}', ru: 'начинается на {{letter}}', zh: '以 {{letter}} 开头', ja: '{{letter}} で始まる', pt: 'começa com {{letter}}', de: 'beginnt mit {{letter}}', ko: '{{letter}}(으)로 시작' }},
+}} as const
+
+function sectionChars(result: Output<'prompt.compose'>): number {{
+  let n = 0
+  for (const sec of result.sections) n += JSON.stringify(sec).length
+  return n
+}}
+
+function contextChars(result: ToolCallOutput): number {{
+  const ctx = (result as {{ context?: readonly string[] }}).context
+  if (ctx === undefined) return 0
+  let n = 0
+  for (const c of ctx) n += c.length
+  return n
+}}
+
+/** Every state slot Toolkitty declares (collected from the sources at generation time), to size the state it holds. */
+const SLOT_IDS: readonly string[] = [
+{chr(10).join(f"  '{sid}'," for sid in sorted(slot_ids))}
+]
+const PERF_PANE_ID = 'toolkitty-perf'
+
+/** How many band lines show before the toggle. */
+const BAND_COMPACT_LINES = 2
+
+/** When this module was loaded: the detail logs start here. */
+const loadedAt = Date.now()
+
+/** The notification center's value: the same ref core.ts writes through notice(). */
+const notices = atom({{ plugin: 'toolkitty', key: 'slot', id: 'notices' }} as const, {{ items: [], unread: 0 }} as Notices) as unknown as Atom<Notices>
+const NOTICES_PANE_ID = 'toolkitty-notices'
+const HOME_PANE_ID = 'toolkitty-home'
+
+/** The detail pane a band line opens. */
+const DETAIL_PANE_ID = 'toolkitty-detail'
+
+/** Which feature the detail pane shows. */
+const detailFeature = atom({{ plugin: 'toolkitty', key: 'slot', id: 'detail-feature' }} as const, null as string | null) as unknown as Atom<string | null>
+
+/** The slash commands each feature registers, collected from the sources. */
+const COMMANDS: Record<string, readonly string[]> = {{
+{chr(10).join(f"  '{slug}': [{', '.join(repr(c) for c in cmds)}]," for slug, cmds in sorted(commands.items()) if cmds)}
+}}
+
+/** The panes each feature opens, first = primary (collected from the sources at generation time). */
+const FEATURE_PANES: Record<string, string[]> = {{
+{chr(10).join(f"  '{slug}': {panes!r}," for slug, panes in sorted(feature_panes.items()))}
+}}
+
+/** Features with a band line, a chip or a detail: a press can show them in the detail pane. */
+const DETAIL_SLUGS: readonly string[] = [
+{chr(10).join(f"  '{slug}'," for slug in detail_slugs)}
+]
+
+/** How many feature chips the band shows beside the headline: by the display profile kept in the store. */
+async function chipLimit($: EngineInterface): Promise<number> {{
+  const profile = await $.store.get('profile')
+  if (profile === 'minimal') return 2
+  if (profile === 'productive') return 5
+  return 99
+}}
+
+function perfText(
+  rows: [string, {{ calls: number; ms: number; worst: number }}][],
+  totalMs: number,
+  totalCalls: number,
+  stateChars: number,
+  biggest: [string, number],
+  uptimeMin: number,
+): string {{
+  const lines = [
+    `Toolkitty perf · ${{uptimeMin}} min since load · ${{totalCalls}} handler calls · ${{totalMs}} ms total (handlers run in parallel; wall time is lower)`,
+    `band redraws: ${{bandDraws.count}} · ${{bandDraws.totalMs}} ms wall total · worst ${{bandDraws.worstMs}} ms`,
+    `system prompt added: ${{added.compose}} chars (~${{Math.round(added.compose / 4)}} tok) over ${{added.composeCalls}} composes`,
+    `tool-result context added: ${{added.toolContext}} chars (~${{Math.round(added.toolContext / 4)}} tok) over ${{added.toolCalls}} tool calls`,
+    `state held: ${{Math.round(stateChars / 1024)}} KB in ${{SLOT_IDS.length}} slots (largest ${{biggest[0]}} ${{Math.round(biggest[1] / 1024)}} KB)`,
+    ...rows.map(([id, p]) => `${{String(p.ms).padStart(6)}} ms  ${{String(p.calls).padStart(5)}} calls  worst ${{p.worst}} ms  ${{id}}`),
+  ]
+  return lines.join('\\n')
+}}
+
+async function openNotices($: EngineInterface): Promise<void> {{
+  await update($, notices, n => ({{ ...n, unread: 0 }}))
+  try {{
+    await $.ui.open({{ id: NOTICES_PANE_ID, title: TITLE, focus: true, closeOnEscape: true }})
+  }} catch {{
+    // no surface
+  }}
+}}
+
+async function openDetail($: EngineInterface, slug: string): Promise<void> {{
+  await update($, detailFeature, () => slug)
+  try {{
+    await $.ui.open({{ id: DETAIL_PANE_ID, title: TITLE, focus: true, closeOnEscape: true }})
+  }} catch {{
+    // no surface to draw it
+  }}
+}}
+
+/** The switchboard's search text: per session, never stored. */
+const sbQuery = atom({{ plugin: 'toolkitty', key: 'slot', id: 'sb-query' }} as const, '' as string) as unknown as Atom<string>
+/** The initial letter the A–Z view is narrowed to ('' = all). */
+/** Whether the language picker row under the header is open (per session). */
+const sbLangOpen = atom({{ plugin: 'toolkitty', key: 'slot', id: 'sb-lang-open' }} as const, false as boolean) as unknown as Atom<boolean>
+const sbLetter = atom({{ plugin: 'toolkitty', key: 'slot', id: 'sb-letter' }} as const, '' as string) as unknown as Atom<string>
+
+
+/** Lower case, without accents or Hebrew points, '-' and '_' read as spaces: "cafe" finds "café", "חבר" finds "חָבֵר". */
+function fold(text: string): string {{
+  return text.normalize('NFD').replace(/[\\u0300-\\u036f\\u0591-\\u05c7]/g, '').replace(/[-_]/g, ' ').toLowerCase()
+}}
+
+/** The features that match `query`, best first: title starts with it, then title or id contains it, then description or command. */
+function searchFeatures(list: readonly Feature[], query: string, cmds: Record<string, readonly string[]>, lang: Lang): Feature[] {{
+  const needle = fold(query.trim())
+  if (needle === '') return [...list]
+  const hits: {{ f: Feature; rank: number; order: number }}[] = []
+  list.forEach((f, order) => {{
+    const titles = [fold(pick(f.title, lang)), fold(f.title.en)]
+    const id = fold(f.id)
+    const descs = [fold(pick(f.description, lang)), fold(f.description.en)]
+    const commands = (cmds[f.id] ?? []).map(c => fold(c))
+    let rank = -1
+    if (titles.some(x => x.startsWith(needle))) rank = 0
+    else if (titles.some(x => x.includes(needle)) || id.includes(needle)) rank = 1
+    else if (descs.some(x => x.includes(needle)) || commands.some(c => c.includes(needle) || `/${{c}}`.includes(needle))) rank = 2
+    if (rank >= 0) hits.push({{ f, rank, order }})
+  }})
+  hits.sort((a, b) => a.rank - b.rank || a.order - b.order)
+  return hits.map(x => x.f)
+}}
+
+/** Sorted by title in the current language, with that language's collation. */
+function azSort(list: readonly Feature[], lang: Lang): Feature[] {{
+  return [...list].sort((a, b) => pick(a.title, lang).localeCompare(pick(b.title, lang), LOCALES[lang]) || a.id.localeCompare(b.id))
+}}
+
+/** The heading letter of a title: its first letter, upper case, without accents; '#' for a digit or symbol. */
+function initialOf(title: string, lang: Lang): string {{
+  const ch = fold(title.trim()).charAt(0).toLocaleUpperCase(LOCALES[lang])
+  return /\\p{{L}}/u.test(ch) ? ch : '#'
+}}
+
+/** The terminal has no text field: a question asks for the search text (typed under "Other"). */
+async function findTerm($: EngineInterface): Promise<void> {{
+  let answer: string
+  try {{
+    answer = await $.ui.ask(t(T.sbAsk), {{ header: t(T.sbAskHeader), options: [t(T.sbAskClear), t(T.sbAskCancel)] }})
+  }} catch {{
+    return
+  }}
+  if (answer === t(T.sbAskCancel)) return
+  const text = answer === t(T.sbAskClear) ? '' : answer.trim()
+  await update($, sbQuery, () => text)
+}}
+
+/** Groups → A–Z → Groups; the choice is kept in the store. */
+async function cycleView($: EngineInterface, current: string): Promise<void> {{
+  await storeSet($, 'switchboard:view', current === 'az' ? 'groups' : 'az')
+  await update($, sbLetter, () => '')
+  // The store is not state: redraw so the view changes at once.
+  $.ui.invalidate('ui.render')
+}}
+
+/** Narrows the A–Z view to one initial; the same letter again lifts it. */
+async function pickLetter($: EngineInterface, letter: string): Promise<void> {{
+  await update($, sbLetter, cur => (cur === letter ? '' : letter))
+}}
+
+/** Whether the band shows every line. */
+const bandOpen = atom({{ plugin: 'toolkitty', key: 'slot', id: 'band-open' }} as const, false) as unknown as Atom<boolean>
+
+/** Which features are on, by id: the same value core.ts reads; the engine wants each file's atom written in that file. */
+const enabled = atom({{ plugin: 'toolkitty', key: 'enabled' }} as const, {{}} as Record<string, boolean>)
+
+/** Switches one feature and shows the result at once: its pane (or its detail) when it goes on, and a notice that says what happened. */
+async function setFeature($: EngineInterface, id: string, turnOn: boolean): Promise<void> {{
+  const all = {{ ...(await read($, enabled)), [id]: turnOn }}
+  await update($, enabled, () => all)
+  await storeSet($, 'enabled', all)
+  const f = features.find(x => x.id === id)
+  if (f === undefined) return
+  const title = t(f.title)
+  if (!turnOn) {{
+    await notice($, 'info', t(T.switchedOff, {{ title }}), id, {{ immediate: true }})
+    return
+  }}
+  const pane = (FEATURE_PANES[id] ?? [])[0]
+  const hasDetail = DETAIL_SLUGS.includes(id)
+  if (pane !== undefined) {{
+    try {{
+      await $.ui.open({{ id: pane, title, focus: true }})
+    }} catch {{
+      // no surface to draw it
+    }}
+  }} else if (hasDetail) {{
+    await openDetail($, id)
+  }}
+  const text = pane === undefined && !hasDetail ? t(T.switchedBg, {{ title, description: t(f.description) }}) : t(T.switchedOn, {{ title }})
+  await notice($, 'info', text, id, {{ immediate: true }})
+}}
+
+/** Stars or unstars a feature's pane: starred panes open when a client attaches. */
+async function toggleStar($: EngineInterface, id: string): Promise<void> {{
+  const current = await storeGet<string[]>($, 'autoOpen', [])
+  await storeSet($, 'autoOpen', current.includes(id) ? current.filter(x => x !== id) : [...current, id])
+  // The store is not state: redraw so the star changes at once.
+  $.ui.invalidate('ui.render')
+}}
+
+/** Opens, unfocused, the pane of every starred feature that is on. An entry may also be a pane id. */
+async function openStarred($: EngineInterface): Promise<void> {{
+  const starred = await storeGet<string[]>($, 'autoOpen', [])
+  for (const entry of starred) {{
+    const owner = FEATURE_PANES[entry] !== undefined ? entry : Object.keys(FEATURE_PANES).find(k => (FEATURE_PANES[k] ?? []).includes(entry))
+    const f = owner === undefined ? undefined : features.find(x => x.id === owner)
+    if (f === undefined || !(await isOn($, f))) continue
+    const pane = FEATURE_PANES[entry] !== undefined ? (FEATURE_PANES[entry] ?? [])[0] : entry
+    if (pane === undefined) continue
+    try {{
+      await $.ui.open({{ id: pane, title: t(f.title) }})
+    }} catch {{
+      // no surface to draw it
+    }}
+  }}
+}}
+
+/** Whether the switchboard still has to be opened once a surface can draw it. */
+let paneWanted = false
+
+/** Opens the switchboard and announces the load; a failure keeps `paneWanted` for the next chance. */
+async function openPane($: EngineInterface): Promise<void> {{
+  try {{
+    const opened = await $.ui.open({{ id: PANE_ID, title: TITLE }})
+    paneWanted = false
+    $.ui.toast(t(T.loaded, {{ n: features.length }}) + (opened.isPlaced ? '' : t(T.notPlaced)))
+  }} catch {{
+    paneWanted = true
+  }}
+}}
+
+/** Feature ids whose handler already failed once this load; each is reported once. */
+const reported = new Set<string>()
+
+function report($: EngineInterface, id: string, err: unknown): void {{
+  if (reported.has(id)) return
+  reported.add(id)
+  const message = err instanceof Error ? err.message : String(err)
+  void notice($, 'alert', t(T.failed, {{ id, message: message.slice(0, 120) }}), id)
+}}
+
+/** Runs one feature's observer; a failure is reported, never stops the others. */
+/** Per-feature cost of this load: handler calls, total ms, slowest ms. */
+const perf = new Map<string, {{ calls: number; ms: number; worst: number }}>()
+/** How often the band above the prompt was redrawn since load, and the wall time of the slowest redraw. */
+const bandDraws = {{ count: 0, worstMs: 0, totalMs: 0 }}
+function tick(id: string, startedAt: number): void {{
+  const ms = Date.now() - startedAt
+  const p = perf.get(id) ?? {{ calls: 0, ms: 0, worst: 0 }}
+  p.calls += 1
+  p.ms += ms
+  if (ms > p.worst) p.worst = ms
+  perf.set(id, p)
+}}
+/** Characters Toolkitty added to what the model reads, per source, this load. */
+const added = {{ compose: 0, toolContext: 0, composeCalls: 0, toolCalls: 0 }}
+
+async function guard($: EngineInterface, id: string, run: () => Promise<unknown>): Promise<void> {{
+  const startedAt = Date.now()
+  try {{
+    await run()
+  }} catch (err) {{
+    report($, id, err)
+  }} finally {{
+    tick(id, startedAt)
+  }}
+}}
+
+async function guardBefore(
+  $: EngineInterface,
+  id: string,
+  run: () => Promise<ToolCallOutput | undefined>,
+): Promise<ToolCallOutput | undefined> {{
+  const startedAt = Date.now()
+  try {{
+    return await run()
+  }} catch (err) {{
+    report($, id, err)
+    return undefined
+  }} finally {{
+    tick(id, startedAt)
+  }}
+}}
+
+async function guardAfter<T>($: EngineInterface, id: string, fallback: T, run: () => Promise<T>): Promise<T> {{
+  const startedAt = Date.now()
+  try {{
+    return await run()
+  }} catch (err) {{
+    report($, id, err)
+    return fallback
+  }} finally {{
+    tick(id, startedAt)
+  }}
+}}
+
+async function guardBand(
+  $: EngineInterface,
+  id: string,
+  run: () => Promise<RenderElement | null>,
+): Promise<RenderElement | null> {{
+  const startedAt = Date.now()
+  try {{
+    return await run()
+  }} catch (err) {{
+    report($, id, err)
+    return null
+  }} finally {{
+    tick(id, startedAt)
+  }}
+}}
+
+/** /toolkitty and its short alias /tk: both names run this one handler. */
+async function runToolkitty($: EngineInterface, e: Input<'command.run'>) {{
+  const args = (e.args ?? '').trim()
+  if (/^perf\\b/i.test(args)) {{
+    await $.ui.open({{ id: PERF_PANE_ID, title: TITLE, focus: true }})
+    return {{ text: t(T.perfOpened) }}
+  }}
+  if (/^help\\b/i.test(args)) {{
+    // /toolkitty help <question>: a cheap model answers from the feature descriptions.
+    const question = args.replace(/^help\\b/i, '').trim()
+    const catalogue = features.map(f => `- "${{t(f.title)}}" (${{f.id}}): ${{t(f.description)}}`).join('\\n')
+    const prompt =
+      'You are the help for "Toolkitty", a Claude Code plugin whose features are listed below with their titles, ids and descriptions. ' +
+      `Answer the user's question in ${{LANG_NAMES[language()]}} in at most 120 words, naming the relevant features and any slash commands their descriptions mention. ` +
+      'If nothing fits, say so briefly.\\n\\nFeatures:\\n' + catalogue + '\\n\\nQuestion: ' + (question === '' ? 'What can this plugin do?' : question)
+    const r = await $.model.complete({{ model: 'claude-haiku-5-5', prompt }})
+    return {{ text: `${{t(T.helpIntro)}}\\n\\n${{r.isAnswered && r.text !== undefined ? r.text : t(T.helpNoAnswer)}}` }}
+  }}
+  await $.ui.open({{ id: PANE_ID, title: TITLE, focus: true }})
+  return {{ text: t(T.opened) }}
+}}
+
+export const register: Register = on => {{
+  // Features that need the catalogue get it here, not by importing index.ts (that import would be circular).
+{chr(10).join(f"  {alias(slug, 'setCatalog')}(features)" for slug in sorted(exports) if 'export function setCatalog' in (features_dir / f'{slug}.tsx').read_text(encoding='utf-8'))}
+
+  // Hooks unique to one feature.
+{chr(10).join(f"  {alias(slug, 'register')}(on)" for slug in by_handler['register'])}
+
+  on('session.start', async ($, e, next) => {{
+    await loadLanguage($)
+    await loadNoticePrefs($)
+    const saved = await storeGet<Record<string, boolean>>($, 'enabled', {{}})
+    await update($, enabled, () => saved)
+    try {{ await $.command.register({{ name: 'toolkitty', description: t(T.command) }}) }} catch {{ /* name taken: the pane still opens from the home screen */ }}
+    try {{ await $.command.register({{ name: 'tk', description: t(T.command) }}) }} catch {{ /* name taken: /toolkitty still works */ }}
+    await $.command.register({{ name: 'notices', description: t(T.noticesCommand) }})
+    await $.command.register({{ name: 'home', description: t(T.homeCommand) }})
+    try {{ await $.command.register({{ name: 'perf', description: t(T.perfCommand) }}) }} catch {{ /* name taken: /toolkitty perf still works */ }}
+    try {{ await $.command.register({{ name: 'exports', description: t(T.exportsCommand) }}) }} catch {{ /* name taken: the Save notices still show the path */ }}
+
+{lines_observe('onSessionStart')}
+
+    // On a reload no surface is attached yet: the pane opens on session.attach.
+    paneWanted = true
+    const surfaces = await $.session.surfaces()
+    if (surfaces.length > 0) await openPane($)
+    return next(e)
+  }})
+
+  on('session.attach', async ($, e, next) => {{
+    if (paneWanted) await openPane($)
+    await openStarred($)
+    return next(e)
+  }})
+
+  on('turn.start', async ($, e, next) => {{
+    if (paneWanted && (await $.session.surfaces()).length > 0) await openPane($)
+{lines_observe('onTurnStart')}
+    return next(e)
+  }})
+
+  on('turn.complete', async ($, e, next) => {{
+{chr(10).join(f"    await guard($, '{slug}', () => {alias(slug, 'onTurnComplete')}($, e))" for slug in by_handler['onTurnComplete'] if slug not in rewriters)}
+    let result: Output<'turn.complete'> = await next(e)
+{chr(10).join(f"    result = await guardAfter($, '{slug}', result, () => {alias(slug, 'onTurnComplete')}($, e, result))" for slug in by_handler['onTurnComplete'] if slug in rewriters)}
+    return result
+  }})
+
+  on('session.measure', async ($, e, next) => {{
+{lines_observe('onMeasure')}
+    return next(e)
+  }})
+
+  on('tool.check', async ($, e, next) => {{
+    let verdict: Output<'tool.check'> = await next(e)
+{chr(10).join(f"    verdict = await guardAfter($, '{slug}', verdict, () => {alias(slug, 'afterToolCheck')}($, e, verdict))" for slug in by_handler['afterToolCheck'])}
+    return verdict
+  }})
+
+  on('tool.call', async ($, e, next) => {{
+    let denied: ToolCallOutput | undefined
+{lines_before('beforeToolCall')}
+    let result = await next(e)
+    const ctxBefore = contextChars(result)
+{lines_after('afterToolCall')}
+    added.toolContext += Math.max(0, contextChars(result) - ctxBefore)
+    added.toolCalls += 1
+    return result
+  }})
+
+  on('tool.call', {{ tool: 'Bash' }}, async ($, e, next) => {{
+    let denied: ToolCallOutput | undefined
+{lines_before('beforeBashCall')}
+    let result: ToolCallOutput = await next(e)
+{lines_after('afterBashCall')}
+    return result
+  }})
+
+  on('tool.call', {{ tool: ['Edit', 'Write', 'NotebookEdit'] }}, async ($, e, next) => {{
+    let denied: ToolCallOutput | undefined
+{lines_before('beforeEditCall')}
+    let result: ToolCallOutput = await next(e)
+{lines_after('afterEditCall')}
+    return result
+  }})
+
+  on('prompt.submit', async ($, e, next) => {{
+    let input: Input<'prompt.submit'> = e
+    let step: Input<'prompt.submit'> | {{ drop: string }}
+{chr(10).join(f"    step = await guardAfter<Input<'prompt.submit'> | {{ drop: string }}>($, '{slug}', input, () => {alias(slug, 'onPromptSubmit')}($, input))" + chr(10) + "    if ('drop' in step && typeof step.drop === 'string') return { drop: step.drop }" + chr(10) + "    input = step as Input<'prompt.submit'>" for slug in by_handler['onPromptSubmit'])}
+    return next(input)
+  }})
+
+  on('prompt.compose', async ($, e, next) => {{
+    let result: Output<'prompt.compose'> = await next(e)
+    const before = sectionChars(result)
+{chr(10).join(f"    result = await guardAfter($, '{slug}', result, () => {alias(slug, 'onPromptCompose')}($, e, result))" for slug in by_handler['onPromptCompose'])}
+    added.compose += Math.max(0, sectionChars(result) - before)
+    added.composeCalls += 1
+    return result
+  }})
+
+  on('ui.render', {{ component: 'AbovePrompt' }}, async ($, e, next) => {{
+    const {{ Box, Button, Text }} = $.ui.resolve(e)
+    const drawStarted = Date.now()
+    // Every feature draws at once: a redraw costs the slowest handler, not the sum of all of them.
+    const drawn: [string, RenderElement | null][] = await Promise.all([
+{chr(10).join(f"      guardBand($, '{slug}', () => {alias(slug, 'renderBand')}($, e)).then((v): [string, RenderElement | null] => ['{slug}', v])," for slug in by_handler['renderBand'])}
+    ])
+    const lines = drawn.filter((pair): pair is [string, RenderElement] => pair[1] !== null)
+    const chipsDrawn: [string, Chip | null][] = await Promise.all([
+{chr(10).join(f"      guardAfter<Chip | null>($, '{slug}', null, () => {alias(slug, 'renderChip')}($, e)).then((v): [string, Chip | null] => ['{slug}', v])," for slug in by_handler['renderChip'])}
+    ])
+    const bell = await read($, notices)
+    {{ const wall = Date.now() - drawStarted; bandDraws.count++; bandDraws.totalMs += wall; if (wall > bandDraws.worstMs) bandDraws.worstMs = wall }}
+    const allChips = chipsDrawn.filter((pair): pair is [string, Chip] => pair[1] !== null).map(([slug, chip]) => ({{ slug, chip }}))
+    // The advisor's chip is the headline: always first. The rest by attention, cut by the display profile.
+    const headline = allChips.filter(c => c.slug === 'advisor')
+    const limit = await chipLimit($)
+    const chips = [...headline, ...sortChips(allChips.filter(c => c.slug !== 'advisor')).slice(0, limit)]
+    if (lines.length === 0 && chips.length === 0 && bell.unread === 0) return next(e)
+    const below = await next(e)
+    const isOpen = await read($, bandOpen)
+    // Compact: one row of chips (what needs attention first) and the bell; a press opens the detail pane.
+    // Expanded: every feature's full line.
+    const chipRow = (
+      <Box gap={{2}} flexWrap="wrap">
+        {{chips.map(({{ slug, chip }}) => (
+          <Button key={{`chip-${{slug}}`}} plain onPress={{() => openDetail($, slug)}}>
+            <Text color={{LEVEL_COLOR[chip.level ?? 'ok']}} dimColor={{(chip.level ?? 'ok') === 'ok'}}>
+              {{chip.icon !== undefined ? `${{chip.icon}} ` : ''}}{{chip.text}}
+            </Text>
+          </Button>
+        ))}}
+        {{bell.unread > 0 ? (
+          <Button key="chip-notices" plain onPress={{() => openNotices($)}}>
+            <Text color={{bell.items.some(n => n.level === 'alert') ? 'error' : 'claude'}}>🔔 {{bell.unread}}</Text>
+          </Button>
+        ) : null}}
+        {{lines.length > 0 || isOpen ? (
+          <Button
+            key="toolkitty-band-toggle"
+            plain
+            dimColor
+            label={{isOpen ? t(T.bandLess) : t(T.bandMore, {{ n: lines.length }})}}
+            onPress={{() => update($, bandOpen, open => !open)}}
+          />
+        ) : null}}
+      </Box>
+    )
+    const rows = lines.map(([slug, line]) =>
+      line.type === 'Text' ? (
+        <Button key={{`band-${{slug}}`}} plain onPress={{() => openDetail($, slug)}}>
+          {{line}}
+        </Button>
+      ) : (
+        <Box key={{`band-row-${{slug}}`}} gap={{1}}>
+          {{line}}
+          <Button key={{`band-more-${{slug}}`}} plain dimColor label="›" onPress={{() => openDetail($, slug)}} />
+        </Box>
+      ),
+    )
+    return (
+      <Box flexDirection="column">
+        {{below}}
+        {{chipRow}}
+        {{isOpen ? rows : null}}
+      </Box>
+    )
+  }})
+
+  on('ui.render', {{ component: 'Pane', requestId: NOTICES_PANE_ID }}, async ($, e) => {{
+    const {{ Box, Text }} = $.ui.resolve(e)
+    const n = await read($, notices)
+    const clear = async () => update($, notices, () => ({{ items: [], unread: 0 }}))
+    const p = noticePrefs()
+    const toggleQuiet = async () => {{
+      await setNoticePrefs($, {{ quiet: !p.quiet }})
+      $.ui.invalidate('ui.render')
+    }}
+    const cycleToast = async () => {{
+      await setNoticePrefs($, {{ toastFrom: p.toastFrom === 'alert' ? 'warn' : p.toastFrom === 'warn' ? 'info' : 'alert' }})
+      $.ui.invalidate('ui.render')
+    }}
+    return (
+      <Box flexDirection="column">
+        {{paneHeader($, e, {{
+          title: t(T.noticesTitle),
+          status: p.quiet ? t(T.noticesQuietOn) : n.items.length > 0 ? t(T.noticesCount, {{ n: n.items.length }}) : undefined,
+          level: p.quiet ? 'info' : 'ok',
+          actions: [
+            {{ key: 'notices-clear', label: t(T.noticesClear), onPress: clear }},
+            {{ key: 'notices-quiet', label: p.quiet ? t(T.noticesQuietOff) : t(T.noticesQuiet), onPress: toggleQuiet }},
+            {{ key: 'notices-toast', label: t(T.noticesToastFrom, {{ level: p.toastFrom }}), onPress: cycleToast }},
+          ],
+        }})}}
+        {{n.items.length === 0
+          ? emptyState($, e, t(T.noticesEmpty), t(T.noticesHint))
+          : [...n.items].reverse().slice(0, 40).map((item, i) =>
+              listRow($, e, {{
+                key: `notice-${{i}}`,
+                left: clockText(Date.now() - item.at),
+                text: item.count > 1 ? `${{item.text}} ×${{item.count}}` : item.text,
+                right: item.feature,
+                level: item.level === 'alert' ? 'alert' : item.level === 'warn' ? 'warn' : 'ok',
+              }}),
+            )}}
+      </Box>
+    )
+  }})
+
+  on('command.run', {{ command: 'perf' }}, async $ => {{
+    await $.ui.open({{ id: PERF_PANE_ID, title: TITLE, focus: true }})
+    return {{ text: t(T.perfOpened) }}
+  }})
+
+  on('command.run', {{ command: 'exports' }}, async ($, e) => {{
+    return {{ text: await exportsCommand($, e.args ?? '') }}
+  }})
+
+  on('ui.render', {{ component: 'Pane', requestId: 'toolkitty-exports' }}, async ($, e) => exportsPane($, e))
+  on('ui.render', {{ component: 'Pane', requestId: 'toolkitty-share' }}, async ($, e) => sharePane($, e))
+
+  on('command.run', {{ command: 'notices' }}, async $ => {{
+    await openNotices($)
+    return {{ text: t(T.noticesOpened) }}
+  }})
+
+  on('ui.render', {{ component: 'Pane', requestId: HOME_PANE_ID }}, async ($, e) => {{
+    const {{ Box, Button, Text }} = $.ui.resolve(e)
+    const chipsDrawn: [string, Chip | null][] = await Promise.all([
+{chr(10).join(f"      guardAfter<Chip | null>($, '{slug}', null, () => {alias(slug, 'renderChip')}($, e as unknown as BandInput)).then((v): [string, Chip | null] => ['{slug}', v])," for slug in by_handler['renderChip'])}
+    ])
+    const chips = sortChips(chipsDrawn.filter((p): p is [string, Chip] => p[1] !== null).map(([slug, chip]) => ({{ slug, chip }})))
+    const bandsDrawn: [string, RenderElement | null][] = await Promise.all([
+{chr(10).join(f"      guardBand($, '{slug}', () => {alias(slug, 'renderBand')}($, e as unknown as BandInput)).then((v): [string, RenderElement | null] => ['{slug}', v])," for slug in by_handler['renderBand'])}
+    ])
+    const n = await read($, notices)
+    const states = await Promise.all(features.map(f => isOn($, f)))
+    const onCount = states.filter(Boolean).length
+    // Live now: every feature that draws a chip or a band line at the moment; the other features that are on work silently.
+    const lineSlugs = bandsDrawn.filter(pair => pair[1] !== null).map(pair => pair[0])
+    const liveSlugs = [...chips.map(c => c.slug), ...lineSlugs.filter(s => !chips.some(c => c.slug === s))]
+    const silent = features.filter((f, i) => (states[i] ?? false) && !liveSlugs.includes(f.id)).length
+    return (
+      <Box flexDirection="column">
+        {{paneHeader($, e, {{
+          title: 'Toolkitty',
+          status: t(T.active, {{ on: onCount, all: features.length }}),
+          actions: [
+            {{ key: 'home-switchboard', label: t(T.homeSwitchboard), onPress: () => $.ui.open({{ id: PANE_ID, title: TITLE, focus: true }}) }},
+            {{ key: 'home-notices', label: t(T.noticesTitle), onPress: () => openNotices($) }},
+            {{ key: 'home-help', label: t(T.homeHelp), onPress: () => $.ui.toast(t(T.homeHelpHint)) }},
+          ],
+        }})}}
+        {{sectionTitle($, e, t(T.homeNow))}}
+        {{chips.length === 0
+          ? emptyState($, e, t(T.homeQuiet))
+          : chips.map(({{ slug, chip }}) => {{
+              const f = features.find(x => x.id === slug)
+              return listRow($, e, {{
+                key: `home-${{slug}}`,
+                text: `${{chip.icon !== undefined ? chip.icon + ' ' : ''}}${{chip.text}}`,
+                right: f === undefined ? undefined : t(f.title),
+                level: chip.level ?? 'ok',
+                onPress: () => openDetail($, slug),
+              }})
+            }})}}
+        {{liveSlugs.length > 0 || silent > 0 ? sectionTitle($, e, t(T.homeLive)) : null}}
+        {{liveSlugs.map(slug => {{
+          const f = features.find(x => x.id === slug)
+          const chip = chips.find(c => c.slug === slug)?.chip
+          return listRow($, e, {{
+            key: `live-${{slug}}`,
+            text: chip !== undefined ? `${{chip.icon !== undefined ? chip.icon + ' ' : ''}}${{chip.text}}` : f === undefined ? slug : t(f.title),
+            right: chip !== undefined && f !== undefined ? t(f.title) : undefined,
+            level: chip?.level ?? 'ok',
+            onPress: () => openDetail($, slug),
+          }})
+        }})}}
+        {{silent > 0 ? <Text dimColor size="footnote">{{t(silent === 1 ? T.homeSilentOne : T.homeSilent, {{ n: silent }})}}</Text> : null}}
+        {{sectionTitle($, e, t(T.homeRecent))}}
+        {{n.items.length === 0
+          ? emptyState($, e, t(T.noticesEmpty))
+          : [...n.items].reverse().slice(0, 6).map((item, i) =>
+              listRow($, e, {{ key: `home-notice-${{i}}`, left: clockText(Date.now() - item.at), text: item.text, level: item.level === 'alert' ? 'alert' : item.level === 'warn' ? 'warn' : 'ok' }}),
+            )}}
+      </Box>
+    )
+  }})
+
+  on('command.run', {{ command: 'home' }}, async $ => {{
+    await $.ui.open({{ id: HOME_PANE_ID, title: TITLE, focus: true }})
+    return {{ text: t(T.homeOpened) }}
+  }})
+
+  on('ui.render', {{ component: 'Pane', requestId: DETAIL_PANE_ID }}, async ($, e) => {{
+    const {{ Box, Button, Text }} = $.ui.resolve(e)
+    const slug = await read($, detailFeature)
+    const f = features.find(x => x.id === slug)
+    if (slug === null || f === undefined) return <Text dimColor>{{t(T.detailNothing)}}</Text>
+    const isActive = await isOn($, f)
+    let detail: RenderElement | null = null
+    let bandNow: RenderElement | null = null
+{chr(10).join(f"    if (slug === '{slug}') detail = await guardBand($, '{slug}', () => {alias(slug, 'renderDetail')}($, e))" for slug in by_handler['renderDetail'])}
+{chr(10).join(f"    if (slug === '{slug}') bandNow = await guardBand($, '{slug}', () => {alias(slug, 'renderBand')}($, e as unknown as BandInput))" for slug in by_handler['renderBand'])}
+    const cmds = COMMANDS[slug] ?? []
+    const toggle = async () => setFeature($, slug, !isActive)
+    return (
+      <Box flexDirection="column">
+        <Box gap={{1}}>
+          <Text bold>{{t(f.title)}}</Text>
+          <Text dimColor>{{isActive ? '●' : '○'}}</Text>
+        </Box>
+        <Text dimColor size="footnote">{{t(f.description)}}</Text>
+        {{bandNow !== null ? <Box marginTop={{1}}>{{bandNow}}</Box> : null}}
+        <Box marginTop={{1}} flexDirection="column">
+          {{detail ?? <Text dimColor size="footnote">{{t(T.detailNothing)}}</Text>}}
+        </Box>
+        <Text dimColor size="footnote">{{t(T.detailSince, {{ since: clockText(Date.now() - loadedAt) }})}}</Text>
+        {{cmds.length > 0 ? (
+          <Box marginTop={{1}}>
+            <Text dimColor size="footnote">
+              {{t(T.detailCommands)}}: {{cmds.map(c => `/${{c}}`).join('  ')}}
+            </Text>
+          </Box>
+        ) : null}}
+        <Box gap={{1}} marginTop={{1}}>
+          <Button key="detail-toggle" plain label={{isActive ? t(T.detailOff) : t(T.detailOn)}} onPress={{toggle}} />
+          <Button key="detail-close" plain role="dismiss" label={{t(T.detailClose)}} onPress={{() => $.ui.close({{ id: DETAIL_PANE_ID }})}} />
+        </Box>
+      </Box>
+    )
+  }})
+
+  on('ui.render', {{ component: 'Pane', requestId: PERF_PANE_ID }}, async ($, e) => {{
+    const {{ Box, Text }} = $.ui.resolve(e)
+    const rows = [...perf.entries()].sort((a, b) => b[1].ms - a[1].ms)
+    const totalMs = rows.reduce((n, [, p]) => n + p.ms, 0)
+    const totalCalls = rows.reduce((n, [, p]) => n + p.calls, 0)
+    // State held: the JSON size of every slot (the engine caps one slot at 4 MiB).
+    let stateChars = 0
+    let biggest: [string, number] = ['', 0]
+    for (const sid of SLOT_IDS) {{
+      try {{
+        const v = await $.state.get({{ plugin: 'toolkitty', key: 'slot', id: sid }})
+        const size = v.value === undefined ? 0 : JSON.stringify(v.value).length
+        stateChars += size
+        if (size > biggest[1]) biggest = [sid, size]
+      }} catch {{
+        // a slot never written
+      }}
+    }}
+    const uptimeMin = Math.max(1, Math.round((Date.now() - loadedAt) / 60_000))
+    return (
+      <Box flexDirection="column">
+        {{paneHeader($, e, {{ title: t(T.perfTitle), status: t(T.perfSince, {{ min: uptimeMin }}), actions: [{{ key: 'perf-copy', label: t(T.perfCopy), onPress: () => $.ui.copy({{ text: perfText(rows, totalMs, totalCalls, stateChars, biggest, uptimeMin) }}) }}] }})}}
+        {{sectionTitle($, e, t(T.perfTokens))}}
+        {{listRow($, e, {{ key: 'perf-compose', text: t(T.perfCompose, {{ chars: added.compose, tok: Math.round(added.compose / 4), n: added.composeCalls }}) }})}}
+        {{listRow($, e, {{ key: 'perf-tool', text: t(T.perfTool, {{ chars: added.toolContext, tok: Math.round(added.toolContext / 4), n: added.toolCalls }}) }})}}
+        {{sectionTitle($, e, t(T.perfTime))}}
+        {{listRow($, e, {{ key: 'perf-total', text: t(T.perfTotal, {{ ms: totalMs, calls: totalCalls }}) }})}}
+        {{listRow($, e, {{ key: 'perf-band', text: `band ×${{bandDraws.count}} · ${{bandDraws.totalMs}} ms · worst ${{bandDraws.worstMs}} ms`, level: bandDraws.worstMs > 300 ? 'warn' : 'ok' }})}}
+        {{rows.slice(0, 15).map(([id, p]) =>
+          listRow($, e, {{ key: `perf-${{id}}`, left: `${{p.ms}} ms`, text: id, right: t(T.perfRow, {{ calls: p.calls, worst: p.worst }}), level: p.worst > 500 ? 'warn' : 'ok' }}),
+        )}}
+        {{sectionTitle($, e, t(T.perfState))}}
+        {{listRow($, e, {{ key: 'perf-state', text: t(T.perfStateRow, {{ kb: Math.round(stateChars / 1024), slots: SLOT_IDS.length, big: biggest[0], bigKb: Math.round(biggest[1] / 1024) }}) }})}}
+        <Text dimColor size="footnote">{{t(T.perfNote)}}</Text>
+      </Box>
+    )
+  }})
+
+  on('command.run', {{ command: 'toolkitty' }}, async ($, e) => runToolkitty($, e))
+  on('command.run', {{ command: 'tk' }}, async ($, e) => runToolkitty($, e))
+
+  on('ui.render', {{ component: 'Pane', requestId: PANE_ID }}, async ($, e) => {{
+    const {{ Box, Button, Text }} = $.ui.resolve(e)
+    const map = await read($, enabled)
+    const states = await Promise.all(features.map(f => isOn($, f)))
+    const onCount = states.filter(Boolean).length
+
+    const setAll = async (value: boolean) => {{
+      // Nothing would change: keep the undo point already stored (a second "all off" must not overwrite it).
+      if (features.every(f => (map[f.id] ?? f.defaultOn) === value)) return
+      // Remember what was on, so an accidental "all off" is one press away from undone.
+      await storeSet($, 'enabled-undo', map)
+      const all: Record<string, boolean> = {{ ...map }}
+      for (const f of features) all[f.id] = value
+      await update($, enabled, () => all)
+      await storeSet($, 'enabled', all)
+    }}
+
+    const hasUndo = (await storeGet<Record<string, boolean> | null>($, 'enabled-undo', null)) !== null
+    const undoAll = async () => {{
+      const prev = await storeGet<Record<string, boolean> | null>($, 'enabled-undo', null)
+      if (prev === null) return
+      await update($, enabled, () => prev)
+      await storeSet($, 'enabled', prev)
+      await storeSet($, 'enabled-undo', null)
+    }}
+
+    const toggle = async (id: string, current: boolean) => setFeature($, id, !current)
+
+    const starred = await storeGet<string[]>($, 'autoOpen', [])
+
+    const hasSaved = (await storeGet<Record<string, boolean> | null>($, 'enabled-default', null)) !== null
+
+    const saveDefault = async () => {{
+      const all: Record<string, boolean> = {{}}
+      for (const f of features) all[f.id] = map[f.id] ?? f.defaultOn
+      await storeSet($, 'enabled-default', all)
+      // The store is not state: redraw so "Restore my default" appears at once.
+      $.ui.invalidate('ui.render')
+      await notice($, 'info', t(T.savedDefault), 'toolkitty')
+    }}
+
+    const restoreDefault = async () => {{
+      const saved = await storeGet<Record<string, boolean> | null>($, 'enabled-default', null)
+      if (saved === null) return
+      await update($, enabled, () => saved)
+      await storeSet($, 'enabled', saved)
+    }}
+
+    const factory = async () => {{
+      const all: Record<string, boolean> = {{}}
+      for (const f of features) all[f.id] = f.defaultOn
+      await update($, enabled, () => all)
+      await storeSet($, 'enabled', all)
+    }}
+
+    const lang = language()
+    const rawQuery = await read($, sbQuery)
+    const query = rawQuery.trim()
+    const view = (await storeGet<string>($, 'switchboard:view', 'groups')) === 'az' ? 'az' : 'groups'
+    const matched = searchFeatures(features, query, COMMANDS, lang)
+    const sorted = view === 'az' ? azSort(matched, lang) : matched
+    const letters: string[] = []
+    if (view === 'az') {{
+      for (const f of sorted) {{
+        const ch = initialOf(pick(f.title, lang), lang)
+        if (!letters.includes(ch)) letters.push(ch)
+      }}
+    }}
+    const pickedRaw = await read($, sbLetter)
+    const picked = view === 'az' && letters.includes(pickedRaw) ? pickedRaw : ''
+    const langOpen = await read($, sbLangOpen)
+    const showJump = view === 'az' && sorted.length >= 20
+    // null = the grouped view; otherwise one flat list (A–Z, or the matches by relevance).
+    const flat = view === 'az' || query !== '' ? (picked === '' ? sorted : sorted.filter(f => initialOf(pick(f.title, lang), lang) === picked)) : null
+    // Only the desktop surface has a text field; the terminal asks with a question instead.
+    const Input = e.surface === 'desktop' ? $.ui.resolve(e).Input : undefined
+
+    const renderRow = (f: Feature) => {{
+      const isActive = states[features.indexOf(f)] ?? f.defaultOn
+      const primary = (FEATURE_PANES[f.id] ?? [])[0]
+      const hasDetail = DETAIL_SLUGS.includes(f.id)
+      const isStarred = starred.includes(f.id)
+      return (
+        <Box key={{`row-${{f.id}}`}} flexDirection="column">
+          <Box gap={{1}}>
+            <Button
+              key={{`t-${{f.id}}`}}
+              label={{`${{isActive ? '●' : '○'}} ${{t(f.title)}}`}}
+              plain
+              dimColor={{!isActive}}
+              onPress={{() => toggle(f.id, isActive)}}
+            />
+            {{primary !== undefined ? (
+              <Button
+                key={{`star-${{f.id}}`}}
+                label={{isStarred ? '★' : '☆'}}
+                plain
+                dimColor={{!isStarred}}
+                onPress={{() => toggleStar($, f.id)}}
+              />
+            ) : null}}
+            {{isActive && primary !== undefined ? (
+              <Button
+                key={{`open-${{f.id}}`}}
+                label={{t(T.rowOpen)}}
+                plain
+                onPress={{() => $.ui.open({{ id: primary, title: t(f.title), focus: true }})}}
+              />
+            ) : isActive && hasDetail ? (
+              <Button key={{`open-${{f.id}}`}} label={{t(T.rowShow)}} plain onPress={{() => openDetail($, f.id)}} />
+            ) : null}}
+          </Box>
+          <Text dimColor size="footnote">
+            {{'   '}}
+            {{t(f.description)}}
+          </Text>
+        </Box>
+      )
+    }}
+
+    return (
+      <Box flexDirection="column">
+        <Box gap={{1}}>
+          <Text bold>Toolkitty</Text>
+          <Text dimColor>{{t(T.active, {{ on: onCount, all: features.length }})}}</Text>
+          {{query !== '' && flat !== null ? <Text color="claude">{{t(flat.length === 1 ? T.sbMatchOne : T.sbMatches, {{ n: flat.length }})}}</Text> : null}}
+          {{picked !== '' ? <Text color="claude">{{t(T.sbLetterStatus, {{ letter: picked }})}}</Text> : null}}
+          {{picked !== '' ? <Button key="sb-letter-clear" label={{t(T.sbClear)}} plain onPress={{() => update($, sbLetter, () => '')}} /> : null}}
+          <Button
+            key="lang"
+            label={{`🌐 ${{LANG_NAMES[language()]}}`}}
+            plain
+            onPress={{() => update($, sbLangOpen, open => !open)}}
+          />
+          <Button key="sb-view" label={{`⇅ ${{view === 'az' ? t(T.sbAz) : t(T.sbGroups)}}`}} plain onPress={{() => cycleView($, view)}} />
+          {{Input === undefined ? (
+            <Button key="sb-find" label={{`🔎 ${{query === '' ? t(T.sbFind) : query}}`}} plain onPress={{() => findTerm($)}} />
+          ) : null}}
+        </Box>
+        <Box gap={{1}}>
+          <Button key="all-on" label={{t(T.allOn)}} plain onPress={{() => setAll(true)}} />
+          <Button key="all-off" label={{t(T.allOff)}} plain onPress={{() => setAll(false)}} />
+          {{hasUndo ? <Button key="undo-all" label={{t(T.undoAll)}} plain onPress={{undoAll}} /> : null}}
+          <Button key="save-default" label={{t(T.saveDefault)}} plain onPress={{saveDefault}} />
+          {{hasSaved ? <Button key="restore-default" label={{t(T.restoreDefault)}} plain onPress={{restoreDefault}} /> : null}}
+          <Button key="factory" label={{t(T.factory)}} plain dimColor onPress={{factory}} />
+        </Box>
+        {{langOpen ? (
+          <Box gap={{1}} flexWrap="wrap">
+            {{LANGS.map(l => (
+              <Button key={{`lang-${{l}}`}} label={{`${{l === language() ? '● ' : ''}}${{LANG_NAMES[l]}}`}} plain onPress={{async () => {{ await setLanguage($, l); await update($, sbLangOpen, () => false) }}}} />
+            ))}}
+          </Box>
+        ) : null}}
+        {{Input !== undefined ? (
+          <Box marginTop={{1}}>
+            <Input key="sb-search" placeholder={{t(T.sbPlaceholder)}} value={{rawQuery}} onInput={{(value: string) => update($, sbQuery, () => value)}} onSubmit={{(value: string) => update($, sbQuery, () => value)}} />
+            {{rawQuery !== '' ? <Button key="sb-x" label="✕" plain onPress={{() => update($, sbQuery, () => '')}} /> : null}}
+          </Box>
+        ) : null}}
+        <Text dimColor size="footnote">
+          {{t(T.hint)}}
+        </Text>
+        {{showJump ? (
+          <Box gap={{1}} flexWrap="wrap" marginTop={{1}}>
+            {{letters.map(ch => (
+              <Button key={{`sb-jump-${{ch}}`}} label={{ch}} plain dimColor={{picked !== ch}} onPress={{() => pickLetter($, ch)}} />
+            ))}}
+          </Box>
+        ) : null}}
+        {{flat !== null && flat.length === 0 ? (
+          <Box flexDirection="column">
+            {{emptyState($, e, t(T.sbNothing, {{ q: query }}), t(T.sbNothingHint))}}
+            <Button key="sb-clear" label={{t(T.sbClear)}} plain onPress={{() => update($, sbQuery, () => '')}} />
+          </Box>
+        ) : null}}
+        {{flat !== null ? (
+          <Box flexDirection="column">
+            {{view === 'az'
+              ? flat.map((f, i) => {{
+                  const ch = initialOf(pick(f.title, lang), lang)
+                  const first = i === 0 || initialOf(pick((flat[i - 1] as Feature).title, lang), lang) !== ch
+                  return (
+                    <Box key={{`az-row-${{f.id}}`}} flexDirection="column">
+                      {{first ? <Box key={{`az-${{ch}}`}}>{{sectionTitle($, e, ch)}}</Box> : null}}
+                      {{renderRow(f)}}
+                    </Box>
+                  )
+                }})
+              : flat.map(f => renderRow(f))}}
+          </Box>
+        ) : (
+          groups.map(group => (
+            <Box key={{`g-${{groups.indexOf(group)}}`}} flexDirection="column" marginTop={{1}}>
+              <Text bold color="claude">
+                {{t(group.title)}}
+              </Text>
+              {{group.features.map(f => renderRow(f))}}
+            </Box>
+          ))
+        )}}
+      </Box>
+    )
+  }})
+}}
+"""
+
+(root / "register.tsx").write_text(body, encoding="utf-8")
+print("wrote", root / "register.tsx")
