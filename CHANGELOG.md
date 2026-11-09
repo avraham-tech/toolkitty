@@ -2,7 +2,7 @@
 
 All notable changes to Toolkitty are listed here.
 
-## Unreleased
+## 0.1.1 — 2026-11-10
 
 - The aurora backdrop and the live self-test work on both backdrop APIs: `ui.backdrop` (Claude Code up
   to 2.1.317, which the desktop app ships) and `theme.set` / `theme.clear` (2.1.319 and later). The test
