@@ -697,9 +697,15 @@ async function reactsToBus($: EngineInterface): Promise<boolean> {
   return (await $.store.get('profile')) !== 'minimal'
 }
 
-async function sync($: EngineInterface): Promise<void> {
+/**
+ * `afterTool`: a tool call has just ended (ran, failed or was denied). The live ticker's "working"
+ * signal is then stale: its after-hook, which retracts it, runs after the buddy's. So that signal
+ * is left out, and the turn's own state decides between working and idle.
+ */
+async function sync($: EngineInterface, afterTool = false): Promise<void> {
   const now = await $.clock.now()
-  const items = (await reactsToBus($)) ? await current($, now) : []
+  const all = (await reactsToBus($)) ? await current($, now) : []
+  const items = afterTool ? all.filter(s => s.kind !== 'working') : all
   const mood = moodAt(now, items)
   const cur = await read($, buddy)
   if (cur.mood !== mood) {
@@ -709,9 +715,9 @@ async function sync($: EngineInterface): Promise<void> {
   }
 }
 
-async function touch($: EngineInterface): Promise<void> {
+async function touch($: EngineInterface, afterTool = false): Promise<void> {
   lastActivity = await $.clock.now()
-  await sync($)
+  await sync($, afterTool)
 }
 
 async function ensure($: EngineInterface): Promise<void> {
@@ -891,7 +897,7 @@ export async function afterToolCall($: EngineInterface, e: ToolCallInput, result
   if (result.deny === undefined && result.isError === true) {
     flash = { mood: 'worried', until: (await $.clock.now()) + FLASH_MS }
   }
-  await touch($)
+  await touch($, true)
   return result
 }
 
