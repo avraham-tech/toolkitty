@@ -245,7 +245,12 @@ type Kind = { id: string; test: RegExp; label: Localized }
 const KINDS: readonly Kind[] = [
   { id: 'ignore', test: /ignore (all )?(previous|prior|above) instructions/i, label: T.kindIgnore },
   { id: 'must', test: /you (must|should) now/i, label: T.kindMust },
-  { id: 'prompt', test: /system ?prompt/i, label: T.kindPrompt },
+  // A request to hand over or replace the system prompt. A bare mention is not one: usage reports and API docs name it all the time.
+  {
+    id: 'prompt',
+    test: /\b(print|reveal|show|output|repeat|dump|leak|disclose|send|expose|recite|display|ignore|override|forget|disregard)\b[^.!?\n]{0,60}\bsystem ?prompt\b|\bsystem ?prompt\b[^.!?\n]{0,40}\b(verbatim|word for word|in full|is now|has (been )?changed)\b/i,
+    label: T.kindPrompt,
+  },
   { id: 'hide', test: /do not (tell|inform) the user/i, label: T.kindHide },
   { id: 'exec', test: /\b(assistant|AI):\s*(execute|run)/i, label: T.kindExec },
   { id: 'tags', test: /<\/?(system|instruction|important)>/i, label: T.kindTags },
