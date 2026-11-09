@@ -15,8 +15,20 @@ KV = re.compile(r"""\b(en|he|es|fr|ru|zh|ja|pt|de|ko):\s*(?:'((?:[^'\\]|\\.)*)'|
 PH = re.compile(r"\{[a-zA-Z_][a-zA-Z0-9_]*\}")
 
 
+# A backslash that does not start an escape sequence the source already had (the review tables show those as written).
+LONE_BACKSLASH = re.compile(r"\\(?![ntr0]|u[0-9a-fA-F]{4}|u\{|x[0-9a-fA-F]{2})")
+LINE_BREAK = re.compile(r"\\n")
+
+
 def esc(s, quote):
-    s = s.replace('\\', '\\\\')
+    """The inverse of extract_i18n's unescape: a reviewer's plain text back into a string literal.
+
+    A real line break or tab becomes its escape (a raw one inside a quoted literal does not parse), an escape
+    sequence copied from the table (\\n, \\u200e) stays one, any other backslash is doubled, and the literal's
+    own quote is escaped.
+    """
+    s = s.replace('\r\n', '\n').replace('\n', '\\n').replace('\t', '\\t')
+    s = LONE_BACKSLASH.sub(lambda _m: '\\\\', s)
     return s.replace(quote, '\\' + quote)
 
 
@@ -44,7 +56,10 @@ def main():
     refused = 0
     for rel, items in by_file.items():
         path = hooks / rel
-        lines = path.read_text(encoding='utf-8').split('\n')
+        # keep the file's own line endings: a text-mode write would turn every line of it into CRLF on Windows
+        source = path.read_bytes().decode('utf-8')
+        eol = '\r\n' if '\r\n' in source else '\n'
+        lines = source.replace('\r\n', '\n').split('\n')
         # apply bottom-up so earlier line numbers stay valid even if a literal spans lines
         for ent, fx in sorted(items, key=lambda x: -x[0]['line']):
             lang = fx.get('lang')
@@ -56,6 +71,11 @@ def main():
             en_ph = sorted(set(PH.findall(ent['raw'].get('en', ''))))
             if sorted(set(PH.findall(text))) != en_ph:
                 print(f"refused (placeholders): {fx['id']} {lang}: {text[:60]}")
+                refused += 1
+                continue
+            # a fix may reword a text but not add or drop line breaks: the layout around the text counts on them
+            if len(LINE_BREAK.findall(esc(text, '"'))) != len(LINE_BREAK.findall(ent['raw'].get('en', ''))):
+                print(f"refused (line breaks): {fx['id']} {lang}: {text[:60]!r}")
                 refused += 1
                 continue
             # the literal starts on ent.line; it may span several lines: scan forward for `lang:` within 40 lines
@@ -80,7 +100,7 @@ def main():
             else:
                 print(f"refused (not found): {fx['id']} {lang}")
                 refused += 1
-        path.write_text('\n'.join(lines), encoding='utf-8')
+        path.write_bytes(eol.join(lines).encode('utf-8'))
     print(f"applied {changed} · refused {refused}")
 
 
