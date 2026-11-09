@@ -4,8 +4,19 @@ All notable changes to Toolkitty are listed here.
 
 ## Unreleased
 
-- Require Claude Code 2.1.319 and migrate the aurora backdrop, live self-test and test mocks from
-  `ui.backdrop` to `theme.set` / `theme.clear`.
+- The aurora backdrop and the live self-test work on both backdrop APIs: `ui.backdrop` (Claude Code up
+  to 2.1.317, which the desktop app ships) and `theme.set` / `theme.clear` (2.1.319 and later). The test
+  suite runs against both (`tools/run_tests.sh`, `tests/engine.ts`).
+- `/selftest` no longer puts the aurora backdrop back up when `/aurora` turned it off for the session.
+- Output archive: a file read stays whole up to 40,000 characters, and always when it was scoped with
+  offset or limit; other tool output is still archived past 8,000 characters.
+- Injection tripwire: a bare mention of the system prompt (usage reports, API docs) is no longer flagged;
+  a request to reveal or replace it still is.
+- The buddy no longer keeps its working pose after a tool call that was denied.
+- Translations: a native-speaker review of all nine languages (1,849 fixes), one register and one term
+  per concept in each.
+- README and SECURITY: the privacy section now lists what push alerts send, the merge gate's `gh` call,
+  what share links carry, and the two local folders outside the plugin store.
 - Limit update-check attempts to one per 24 hours even after HTTP errors, malformed responses,
   connection failures or timeouts, while preserving the last successful check and release.
 - Correct documented command names and model-call privacy details; replace placeholder demo text

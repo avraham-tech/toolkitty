@@ -51,3 +51,8 @@ here before posting. r/opensource and r/programming are excluded already (see CH
   BRAND-KIT.md, LAUNCH-CALENDAR.md, METRICS.md + metrics/check.ps1 + metrics/log.csv (baseline row).
   Rules verified: Show HN, awesome-claude-code, awesome-claude-code-mods, Anthropic directory,
   Console.dev, TLDR (no path). Not verifiable from here: Reddit sidebars, Discord pinned rules.
+- 2026-11-09 · Review of `main` (3560b2e): green on Claude Code 2.1.319 (1,964 tests). A local `dev`
+  branch (not pushed, not released) adds: the backdrop on both engine APIs (2.1.317 and 2.1.319), a
+  corrected privacy section, the reviewed translations and four small fixes; 1,966 tests, green on both
+  engines. The copy still says 1,936, which is right for v0.1.0: change the number together with the next
+  release, not before. `docs/DEMO.md` now names `/smart` (there is no `/advisor` command).

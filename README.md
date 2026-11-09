@@ -1,6 +1,6 @@
 Toolkitty is a Claude Code plugin with 91 switchable features that monitor your session, optimize context and cost, block dangerous commands, verify claims against real test runs, and keep you company with a tiny cat.
 
-<!-- Original 0.1.0 release install commands verified 2026-11-09 on a clean profile (empty CLAUDE_CONFIG_DIR, Claude Code 2.1.317, Windows 11). That release passed 1,936 tests. The current checkout uses the 2.1.319 theme API; see Requirements and tests/README.md. -->
+<!-- Original 0.1.0 release install commands verified 2026-11-09 on a clean profile (empty CLAUDE_CONFIG_DIR, Claude Code 2.1.317, Windows 11). That release passed 1,936 tests. The current checkout speaks both backdrop APIs (2.1.317 and 2.1.319); see Requirements and tests/README.md. -->
 <!-- Banner image docs/assets/banner.png also serves as the GitHub social preview. -->
 
 <p align="center">
@@ -26,7 +26,7 @@ Toolkitty is a Claude Code plugin with 91 switchable features that monitor your 
 
 ## Install
 
-Toolkitty is a Claude Code plugin. Two commands, inside Claude Code or in a terminal:
+Toolkitty is a Claude Code plugin. Add the marketplace, then install, inside Claude Code or in a terminal:
 
 ```text
 /plugin marketplace add avraham-tech/toolkitty
@@ -51,8 +51,9 @@ Then start a new session. The welcome wizard opens: pick a language, pick how mu
 (Minimal, Productive or Playful), meet your companion. `/toolkitty` (or `/tk`) opens the switchboard with
 every feature and its switch.
 
-**Requirements.** Claude Code 2.1.319 with hooks-module support (desktop app or CLI).
-This version uses the `theme.set` / `theme.clear` API; 2.1.317's older backdrop API is not supported.
+**Requirements.** Claude Code 2.1.317 or later with hooks-module support (desktop app or CLI).
+The backdrop works on both engine APIs: `ui.backdrop` (up to 2.1.317) and `theme.set` / `theme.clear`
+(2.1.319 and later).
 Git on your PATH for the git-aware features.
 A terminal at least ~100 columns wide for the status band. Tested on: *Windows 11, Claude Code desktop
 app* (other platforms: see [Platforms](#platforms-and-known-limits)).
@@ -188,7 +189,7 @@ state after a fresh install in the Productive profile.
 | Handoff preview | on | /handoff shows a draft of the goal, what is done, decisions, files, failures and next step, lets you add notes, and compacts the session with exactly that draft when you press Compact now. |
 | Context Doctor | on | A transparent 0-100 health score for the conversation (context fill, duplicate reads, cold cache, repeated failures) and four clearly separated token numbers. /context-doctor opens it; it never compacts anything by itself. |
 | Duplicate read detector | on | Spots wasted context: files read again unchanged and commands repeated needlessly. /waste lists the top offenders. |
-| Output archive | on | Moves long tool output (over 8,000 characters) into a file and keeps only the start in the context. /recall searches it, /archive lists it. |
+| Output archive | on | Moves long tool output (over 8,000 characters; a file read only past 40,000, and never one you scoped with offset or limit) into a file and keeps only the start in the context. /recall searches it, /archive lists it. |
 | Correction capture | on | Learns from your corrections: turns "no, not like that" into a lasting rule for this project and gives it to the model every turn. /rules manages them. |
 
 #### More guardrails
@@ -271,9 +272,10 @@ state after a fresh install in the Productive profile.
 
 ## Platforms and known limits
 
-- The backdrop and its self-test use Claude Code 2.1.319's `theme.set` / `theme.clear` API.
-  Earlier builds with `ui.backdrop` need an older Toolkitty revision. Newer builds should be checked
-  with the automated suite; manifest validation alone does not establish live UI compatibility.
+- The backdrop and its self-test speak both backdrop APIs: `ui.backdrop` (Claude Code up to 2.1.317,
+  which the desktop app ships at the time of writing) and `theme.set` / `theme.clear` (2.1.319 and
+  later). The automated suite passes on both; the backdrop itself has not been watched drawing on a
+  2.1.319 desktop build yet.
 - Developed and tested on Windows 11 in the Claude Code desktop app. macOS and Linux have not been
   tested by the author yet; reports are welcome in the issues.
 - The desktop build used for development draws no window backdrops and has no OS notification channel,
@@ -288,16 +290,25 @@ state after a fresh install in the Productive profile.
 ## What leaves your machine
 
 Toolkitty has no server and sends no telemetry, analytics or crash reports.
-Four kinds of network traffic can happen, each listed here:
+Five kinds of network traffic can happen, each listed here:
 
-1. **Update check** (on by default, switchable): once a day, one GET to
-   GitHub's releases API for this repository. Nothing but the request.
-2. **Push alerts** (only if you set a URL with `/push-url`): a one-line
-   status ("waiting for your approval") POSTed to the server you chose,
-   such as your own ntfy topic.
-3. **Share buttons**: open your browser with the card text pre-filled on
-   the network you picked. Nothing is sent until you post it yourself.
-4. **Model features**: some features make model requests through your own
+1. **Update check** (on by default, switchable): at most once per 24 hours,
+   at session start, one GET to GitHub's releases API for this repository.
+   A failed attempt counts too. Nothing but the request.
+2. **Push alerts** (only if you set a URL with `/push-url`): one line
+   POSTed to the server you chose, such as your own ntfy topic. While a
+   tool waits for your approval the line names the tool ("waiting for your
+   approval of Bash"). After a turn longer than two minutes the line is
+   "done:" followed by the first 100 characters of Claude's answer, so
+   pick a server you trust with that.
+3. **Share buttons**: open your browser (or mail program) at the network
+   you picked, with the card text in the link. The network receives that
+   text when the page opens, before you press post. Nothing is posted until
+   you post it yourself.
+4. **Merge gate** (on by default, switchable): before a `git push` or
+   `gh pr merge` it runs `gh pr checks` with your own GitHub CLI login to
+   read the pull request's CI state from GitHub.
+5. **Model features**: some features make model requests through your own
    Claude Code account and can incur model costs. Most use Haiku; `/explain`
    forks the current conversation instead. On command only:
    `/commitmsg` (staged diff), `/explain` (conversation context), `/toolkitty help`, `/selftest model`.
@@ -306,13 +317,17 @@ Four kinds of network traffic can happen, each listed here:
    or pick the Minimal profile): *Correction capture* sends a message of
    yours that looks like a correction ("no, use tabs") at the end of the
    turn, to distil it into a project rule; *Session finder* sends your
-   first three prompts and an excerpt of one answer, a few times per
+   first three prompts and an excerpt of one answer, at most twice per
    session, to give the session a title. Both go to Haiku through your own
    account, like a prompt you type; Toolkitty never sees them.
 
 Everything else (savings, incidents, cards, receipts, trophies, exports)
 is computed and stored locally in Claude Code's plugin store and in
-`.claude/toolkitty.json` of the project. Exported cards never contain your
+`.claude/toolkitty.json` of the project. Two features write files of their
+own, also local: *Output archive* keeps the full text of long tool outputs
+in `toolkitty-archive` under your temp folder (or the project's `.claude`
+folder when there is no temp folder), and *Mission control* keeps one small
+heartbeat file per session in `~/.claude/toolkitty-sessions`. Exported cards never contain your
 name, paths, project name or prompt text; paths are reduced to file names
 and secret-like strings are masked before anything is copied.
 

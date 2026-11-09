@@ -5,11 +5,13 @@ Thanks for helping. Toolkitty is maintained by one person in spare time, so smal
 ## Before you open a pull request
 
 - Open an issue first for anything bigger than a fix, so we can agree on the direction.
-- Use Claude Code 2.1.319 and run the tests from the plugin root:
+- Run the tests from the plugin root with Claude Code 2.1.319 or later:
 
   ```bash
   claude plugin test .
   ```
+
+  With a 2.1.317 CLI, use `bash tools/run_tests.sh --cli <claude> --api ui` (see `tests/README.md`).
 
   All tests should pass before and after your change.
 - Add or update a test next to the code you changed (see `tests/`).

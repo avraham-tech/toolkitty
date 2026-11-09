@@ -21,7 +21,8 @@ unless you prefer not to be.
   redaction layer.
 - Any network call not listed in the README's "What leaves your machine" section.
 - Data written outside Claude Code's plugin store, the project's `.claude/toolkitty.json`, the exports
-  folder or `~/.claude/toolkitty-*` folders.
+  folder, `~/.claude/toolkitty-*` folders or the output archive (`toolkitty-archive` under the temp
+  folder, or under the project's `.claude` folder when there is no temp folder).
 
 Not vulnerabilities: a dangerous command that does not match any rule (the guards are pattern rules, not
 a sandbox; a proposal for a new rule is a feature request), and behaviour of Claude Code itself.

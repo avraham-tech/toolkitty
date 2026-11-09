@@ -1,11 +1,12 @@
 # Test plan
 
 ## Harness
-Use the engine test kit (`claude-code/testing`) with Claude Code 2.1.319 and run `claude plugin test .`
-from the plugin root. The expected result is 1,943 passing tests across 102 files; see
+Use the engine test kit (`claude-code/testing`) and run `claude plugin test .` from the plugin root, or
+`bash tools/run_tests.sh --cli <claude>`. The expected result is 1,966 passing tests across 103 files; see
 [the test instructions](../tests/README.md). Tests live in `tests/*.test.tsx` and import their shared
-helpers from the same directory. The current backdrop implementation and mocks use `theme.set` /
-`theme.clear`; 2.1.317's `ui.backdrop` API is no longer used.
+helpers from the same directory. The backdrop speaks both engine APIs (`ui.backdrop` up to Claude Code
+2.1.317, `theme.set` / `theme.clear` from 2.1.319), and the suite is run against both; `tests/engine.ts`
+says which mock the engine under test takes.
 
 Earlier development used grouped fixtures under `scratchpad/testmods/` and a separate preview
 harness. Those scripts are not part of this checkout; the checklists below record that development plan.

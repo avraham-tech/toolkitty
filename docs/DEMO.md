@@ -27,7 +27,7 @@ What stays after `/demo off`: the notices and evidence records the demo posted r
 | Scene | Headline | What it shows |
 |---|---|---|
 | `calm` | green / "working npm test" | Everything low: context 31%, weekly 12%, budget 18%, 41k tokens saved, one agent running, tests passed. 28 info notices and 2 warnings, no alerts. Activity halved. Use it for the "this is what a good day looks like" shot. |
-| `busy` | red "3 repeated failures" | The mixed scene: context 83%, weekly quota 46% (warn), budget 91% (warn), 3 failures, a loop, 6 duplicate reads, 254k tokens saved, an older incident, `2 running · 1 denied`, tests passed. 30 notices of every level. Use it for the band, `/notices`, `/advisor`. |
+| `busy` | red "3 repeated failures" | The mixed scene: context 83%, weekly quota 46% (warn), budget 91% (warn), 3 failures, a loop, 6 duplicate reads, 254k tokens saved, an older incident, `2 running · 1 denied`, tests passed. 30 notices of every level. Use it for the band, `/notices`, `/smart`. |
 | `rescue` | red "blocked: rm -rf" | An incident that was just blocked (the ticker keeps it fresh, so the headline stays red for the whole recording), one agent denied, moderate numbers, 4 alerts among the notices. Use it for the "it saved me" story. |
 
 ## Recording a 20-second GIF
@@ -39,7 +39,7 @@ Start the recording at an idle prompt with a quiet terminal or desktop window, ~
 3. **4-8 s, `/notices`.** Thirty notices with the bell count; scroll slowly once.
 4. **8-12 s, `/savings`.** The savings card with 30 days of history.
 5. **12-15 s, `/sessions`.** The six `[DEMO]` sessions.
-6. **15-18 s, `/advisor`.** The recommendations the busy or rescue signals produce.
+6. **15-18 s, `/smart`.** The recommendations the busy or rescue signals produce.
 7. **18-20 s, `/demo off`.** The chip disappears and "Demo mode is off; your data is back." appears. Ending on the restore is honest and makes a good last frame.
 
 Scene order for a longer take: `calm` (3 s) then `/demo scene busy` then `/demo scene rescue`; switching scenes replaces the signals instantly and adds one notice, not thirty.
