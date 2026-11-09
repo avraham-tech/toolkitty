@@ -65,3 +65,7 @@ Current: MIT (max adoption; copying allowed, credit required). Alternatives: AGP
 - [x] Topics, Ko-fi homepage, Discussions on.
 - [ ] Upload `docs/assets/banner.png` as Social preview (GitHub web UI only).
 - [x] `v0.1.0` tagged and released 2026-11-09: https://github.com/avraham-tech/toolkitty/releases/tag/v0.1.0
+
+## Shared copy (done 2026-11-09)
+- [x] Released v0.1.0 to `~/.claude/skills/toolkitty` (git archive of the tagged commit); `skills/toolkit` removed; backups moved to `~/.claude/toolkitty-backups/` (a backup inside skills/ carries a manifest and loads as a plugin).
+- Open sessions pick it up on `/reload-plugins` or restart. Settings stored under the old plugin name (`toolkit`) do not carry over: language, switches and the buddy start fresh.
