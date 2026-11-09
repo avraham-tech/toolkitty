@@ -124,9 +124,13 @@ function rig(on: any, o: { store?: Record<string, unknown>; surfaces?: string[] 
     if (w.placeThrow !== undefined) return { deny: w.placeThrow } as never
     return { value: w.placeRes } as never
   })
-  on('ui.backdrop', (_: any, e: any) => {
+  on('theme.set', (_: any, e: any) => {
     w.backdrops.push(e.backdrop)
     return { value: w.backdropRes } as never
+  })
+  on('theme.clear', () => {
+    w.backdrops.push(undefined)
+    return { value: { isDrawn: false, reason: 'the theme is cleared' } } as never
   })
   on('audio.play', (_: any, e: any) => {
     w.played.push(JSON.stringify(e))

@@ -153,10 +153,15 @@ export function world(on: any, o: Opts = {}): World {
     w.copies.push({ text: e.text, surface: e.surface })
     return { value: { isCopied: w.copyOk } }
   })
-  on('ui.backdrop', (_: any, e: any) => {
+  on('theme.set', (_: any, e: any) => {
     if (w.failBackdrop) throw new Error('no surface')
     w.backdrops.push(e.backdrop)
     return { value: e.backdrop === undefined ? undefined : { isDrawn: true, requestId: 'backdrop' } }
+  })
+  on('theme.clear', () => {
+    if (w.failBackdrop) throw new Error('no surface')
+    w.backdrops.push(undefined)
+    return { value: { isDrawn: false, reason: 'the theme is cleared' } }
   })
   on('session.surfaces', () => ({ value: w.surfaces }))
   on('session.cwd', () => ({ value: w.cwd }))

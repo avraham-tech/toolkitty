@@ -1,6 +1,6 @@
 Toolkitty is a Claude Code plugin with 91 switchable features that monitor your session, optimize context and cost, block dangerous commands, verify claims against real test runs, and keep you company with a tiny cat.
 
-<!-- Install commands verified 2026-11-09 on a clean profile (empty CLAUDE_CONFIG_DIR, Claude Code 2.1.317, Windows 11): both forms install 0.1.0 from this repo, the installed copy passes `claude plugin validate` and its own 1,936 tests, and `plugin uninstall` leaves no plugin entry (the marketplace cache folder stays, empty of plugins). -->
+<!-- Original 0.1.0 release install commands verified 2026-11-09 on a clean profile (empty CLAUDE_CONFIG_DIR, Claude Code 2.1.317, Windows 11). That release passed 1,936 tests. The current checkout uses the 2.1.319 theme API; see Requirements and tests/README.md. -->
 <!-- Banner image docs/assets/banner.png also serves as the GitHub social preview. -->
 
 <p align="center">
@@ -11,8 +11,8 @@ Toolkitty is a Claude Code plugin with 91 switchable features that monitor your 
 
 <p align="center">
   91 switchable features for Claude Code, each one a toggle in a pane. A tiny cat watches your session,
-  guards block the dangerous commands, meters show where context and money go, and nothing leaves your
-  machine that you did not ask to send.
+  guards block dangerous command patterns, and meters show where context and money go. Network activity,
+  including automatic small-model features, is listed in <a href="#what-leaves-your-machine">Privacy</a>.
 </p>
 
 <p align="center">
@@ -51,7 +51,9 @@ Then start a new session. The welcome wizard opens: pick a language, pick how mu
 (Minimal, Productive or Playful), meet your companion. `/toolkitty` (or `/tk`) opens the switchboard with
 every feature and its switch.
 
-**Requirements.** Claude Code 2.1.3xx (desktop app or CLI). Git on your PATH for the git-aware features.
+**Requirements.** Claude Code 2.1.319 with hooks-module support (desktop app or CLI).
+This version uses the `theme.set` / `theme.clear` API; 2.1.317's older backdrop API is not supported.
+Git on your PATH for the git-aware features.
 A terminal at least ~100 columns wide for the status band. Tested on: *Windows 11, Claude Code desktop
 app* (other platforms: see [Platforms](#platforms-and-known-limits)).
 
@@ -63,17 +65,9 @@ Toolkitty also checks GitHub once a day for a newer release and tells you with a
 
 ## See it in action
 
-<!-- GIF: gif-companion.gif (6-8 s, welcome step 3 reveal) not recorded yet; add docs/assets/gif-companion.gif and uncomment:
-![The welcome wizard reveals your companion](docs/assets/gif-companion.gif) -->
-
-<!-- GIF: gif-guardrail.gif (8-12 s, /demo scene rescue) not recorded yet; add docs/assets/gif-guardrail.gif and uncomment:
-![A broad rm -rf is blocked and a safety receipt explains why](docs/assets/gif-guardrail.gif) -->
-
-<!-- GIF: gif-smart-bar.gif (8-12 s, /demo scene busy) not recorded yet; add docs/assets/gif-smart-bar.gif and uncomment:
-![The status band, the advisor and the savings card](docs/assets/gif-smart-bar.gif) -->
-
-The clips (once added) are recorded with `/demo`, which fills the panes with synthetic data; every synthetic
-number carries a **DEMO** label in the recording. Nothing in them is a measurement of a real project.
+Open `/home` to explore the session hub, `/buddy` to meet your companion, or `/smart` for the advisor.
+For sample data, run `/demo on`, then `/demo scene calm`, `/demo scene busy`, or `/demo scene rescue`.
+Demo numbers carry a **DEMO** label and are synthetic. Run `/demo off` to restore your real session data.
 
 ## What it does
 
@@ -264,7 +258,7 @@ state after a fresh install in the Productive profile.
 |---|---|
 | `/toolkitty`, `/tk` | The switchboard: every feature, its switch, search, language picker |
 | `/home` | The hub: what is live now, the band, quick links |
-| `/advisor` | Recommendations worked out from what the other features see |
+| `/smart` | Recommendations worked out from what the other features see |
 | `/context-doctor` | Context health score and four separate token numbers |
 | `/savings` | What Toolkitty kept out of the conversation, estimated |
 | `/incidents` | Everything a guard stopped |
@@ -277,6 +271,9 @@ state after a fresh install in the Productive profile.
 
 ## Platforms and known limits
 
+- The backdrop and its self-test use Claude Code 2.1.319's `theme.set` / `theme.clear` API.
+  Earlier builds with `ui.backdrop` need an older Toolkitty revision. Newer builds should be checked
+  with the automated suite; manifest validation alone does not establish live UI compatibility.
 - Developed and tested on Windows 11 in the Claude Code desktop app. macOS and Linux have not been
   tested by the author yet; reports are welcome in the issues.
 - The desktop build used for development draws no window backdrops and has no OS notification channel,
@@ -300,10 +297,11 @@ Four kinds of network traffic can happen, each listed here:
    such as your own ntfy topic.
 3. **Share buttons**: open your browser with the card text pre-filled on
    the network you picked. Nothing is sent until you post it yourself.
-4. **Small-model features**: some features ask Claude Haiku through your own
-   Claude Code account, exactly like a prompt you type. On command only:
-   `/commit-msg` (staged diff), `/explain`, `/toolkitty help`, `/selftest`.
-   Off by default: `/enhance`, `/tldr`, decision ledger.
+4. **Model features**: some features make model requests through your own
+   Claude Code account and can incur model costs. Most use Haiku; `/explain`
+   forks the current conversation instead. On command only:
+   `/commitmsg` (staged diff), `/explain` (conversation context), `/toolkitty help`, `/selftest model`.
+   Off by default: prompt enhancement (`/enhance`), answer summaries, decision ledger.
    **On by default and automatic** (switch either off in `/toolkitty`,
    or pick the Minimal profile): *Correction capture* sends a message of
    yours that looks like a correction ("no, use tabs") at the end of the

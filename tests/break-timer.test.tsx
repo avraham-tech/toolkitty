@@ -38,7 +38,11 @@ function noOwnFailure(text: string) {
 
 // Every call the plugin makes on `$` is answered here, the engine's side.
 // Other features run one-second timers; with hours of mock time that is thousands of ticks, so they sit this out.
-const QUIET = { advisor: false, buddy: false, 'auto-continue': false, 'agents-monitor': false, 'cache-countdown': false, 'live-ticker': false }
+const QUIET = {
+  advisor: false, buddy: false, 'auto-continue': false, 'agents-monitor': false,
+  'cache-countdown': false, 'live-ticker': false, 'task-pulse': false, 'task-eta': false,
+  'mission-control': false, 'uncommitted-reminder': false,
+}
 
 function boot(on: any, store: Record<string, unknown> = {}) {
   mock.store(on, { language: 'en', ...store, enabled: { ...QUIET, ...((store['enabled'] as object | undefined) ?? {}) } })

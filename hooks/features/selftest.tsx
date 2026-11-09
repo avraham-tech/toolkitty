@@ -452,16 +452,16 @@ async function checkBackdrop($: EngineInterface, ctx: Ctx): Promise<Outcome> {
   const aurora = catalog.find(f => f.id === AURORA_ID)
   if (aurora !== undefined && (await isOn($, aurora))) {
     // Aurora is up (or trying): re-issue its own backdrop and report the surface's verdict without clearing it.
-    const r = await $.ui.backdrop({ id: 'aurora', glass: { blur: 18, opacity: 0.5 } })
+    const r = await $.theme.set({ backdrop: { id: 'aurora', glass: { blur: 18, opacity: 0.5 } } })
     return r.isDrawn ? { ok: true, detail: t(T.dDrawn) } : { ok: false, detail: reasonOf(r.reason) }
   }
   try {
-    const r = await $.ui.backdrop({ id: 'selftest' })
+    const r = await $.theme.set({ backdrop: { id: 'selftest' } })
     return r.isDrawn ? { ok: true, detail: t(T.dDrawn) } : { ok: false, detail: reasonOf(r.reason) }
   } finally {
     // Only reached when no aurora backdrop was up, so clearing leaves nothing of the person's behind.
     try {
-      await $.ui.backdrop(undefined)
+      await $.theme.clear()
     } catch {
       // the surface went away
     }

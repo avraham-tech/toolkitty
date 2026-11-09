@@ -103,7 +103,6 @@ function boot(on: any, o: Opts = {}): World {
     copyOk: true,
     pluginJson: undefined,
     slots: new Map(),
-    storeSets: [],
   }
   const slotKey = (e: any): string => `${e.plugin}/${e.key}/${e.id ?? ''}`
   on('state.get', (_: any, e: any) => {

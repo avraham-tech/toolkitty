@@ -5,7 +5,7 @@ Thanks for helping. Toolkitty is maintained by one person in spare time, so smal
 ## Before you open a pull request
 
 - Open an issue first for anything bigger than a fix, so we can agree on the direction.
-- Run the tests from the plugin root:
+- Use Claude Code 2.1.319 and run the tests from the plugin root:
 
   ```bash
   claude plugin test .

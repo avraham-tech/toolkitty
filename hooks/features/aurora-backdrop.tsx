@@ -168,7 +168,7 @@ async function sync($: EngineInterface): Promise<void> {
     if (isUp) return
     try {
       if (!(await $.session.surfaces()).includes('desktop')) return
-      const result = await $.ui.backdrop({ id: 'aurora', glass: { blur: 18, opacity: 0.5 } })
+      const result = await $.theme.set({ backdrop: { id: 'aurora', glass: { blur: 18, opacity: 0.5 } } })
       if (result.isDrawn) {
         isUp = true
         await update($, aurora, cur => ({ ...cur, lastResult: 'drawn' }))
@@ -192,7 +192,7 @@ async function sync($: EngineInterface): Promise<void> {
   if (isUp) {
     isUp = false
     try {
-      await $.ui.backdrop(undefined)
+      await $.theme.clear()
     } catch {
       // the surface went away
     }

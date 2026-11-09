@@ -141,7 +141,7 @@ for (const [label, patch] of [
   ['an empty tag', { text: '{"tag_name":""}' }],
   ['a numeric tag', { text: '{"tag_name":7}' }],
 ] as const) {
-  test(`${label} stores nothing and shows no toast`, SLOW, async ($, on) => {
+  test(`${label} stores no successful check or release and shows no toast`, SLOW, async ($, on) => {
     const { plan, kv, updates } = boot(on)
     Object.assign(plan, patch)
     await start($)
@@ -198,6 +198,62 @@ test('a second session start the same day does not ask again', SLOW, async ($, o
   await start($)
   await start($)
   expect(seen.fetches).toHaveLength(1)
+})
+
+for (const [label, patch] of [
+  ['HTTP 404', { status: 404, ok: false }],
+  ['HTTP 403', { status: 403, ok: false }],
+  ['invalid JSON', { text: '<html>' }],
+  ['a missing release tag', { text: '{"name":"no tag"}' }],
+  ['a connection error', { throws: true }],
+] as const) {
+  test(`${label}: failed attempts are limited to one per 24 hours across sessions`, SLOW, async ($, on) => {
+    const { clock, plan, seen, kv } = boot(on)
+    Object.assign(plan, patch)
+    await start($)
+    expect(seen.fetches).toHaveLength(1)
+    expect(kv.get('update-check:lastAttemptAt')).toBe(NOW)
+    expect(kv.get('update-check:lastAt')).toBeUndefined()
+    await start($)
+    expect(seen.fetches).toHaveLength(1)
+    // Simulate a persisted attempt just under 24 hours old without ticking every UI timer for a day.
+    kv.set('update-check:lastAttemptAt', NOW - 24 * HOUR + 1)
+    await start($)
+    expect(seen.fetches).toHaveLength(1)
+    await clock.advance(1)
+    await start($)
+    expect(seen.fetches).toHaveLength(2)
+    expect(kv.get('update-check:lastAttemptAt')).toBe(NOW + 1)
+    expect(kv.get('update-check:lastAt')).toBeUndefined()
+  })
+}
+
+test('a timed-out request is not retried in a second session that day', SLOW, async ($, on) => {
+  const { clock, plan, seen, kv } = boot(on)
+  plan.hold = 60_000
+  const started = start($)
+  await clock.advance(8_000)
+  await started
+  expect(kv.get('update-check:lastAttemptAt')).toBe(NOW)
+  expect(kv.get('update-check:lastAt')).toBeUndefined()
+  await start($)
+  expect(seen.fetches).toHaveLength(1)
+})
+
+test('a failed request keeps the last successful release and check time', SLOW, async ($, on) => {
+  const previousAt = NOW - 25 * HOUR
+  const previousRelease = { version: '1.3.0', name: 'Already known' }
+  const { plan, kv, seen } = boot(on, {
+    'update-check:lastAt': previousAt,
+    'update-check:latest': previousRelease,
+  })
+  plan.throws = true
+  await start($)
+  expect(kv.get('update-check:lastAt')).toBe(previousAt)
+  expect(kv.get('update-check:latest')).toEqual(previousRelease)
+  await start($)
+  expect(seen.fetches).toHaveLength(1)
+  expect((await $.command.run({ command: 'toolkitty-version', args: '' })).text).toContain('Newest known release: 1.3.0 (Already known)')
 })
 
 test('an unreadable plugin.json skips the request altogether', SLOW, async ($, on) => {

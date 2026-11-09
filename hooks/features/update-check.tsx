@@ -56,6 +56,7 @@ export const feature: Feature = {
 const DAY_MS = 24 * 60 * 60 * 1000
 const TIMEOUT_MS = 8000
 const LAST_AT_KEY = 'update-check:lastAt'
+const LAST_ATTEMPT_KEY = 'update-check:lastAttemptAt'
 const LATEST_KEY = 'update-check:latest'
 
 type Latest = { version: string; name: string }
@@ -129,11 +130,14 @@ export async function onSessionStart($: EngineInterface, e: Input<'session.start
 
   const now = await $.clock.now()
   const lastAt = await storeGet<number>($, LAST_AT_KEY, 0)
-  if (now - lastAt < DAY_MS) return
+  const lastAttemptAt = await storeGet<number>($, LAST_ATTEMPT_KEY, 0)
+  if (now - Math.max(lastAt, lastAttemptAt) < DAY_MS) return
 
   try {
     const current = await readVersion($)
     if (current === null) return
+    // Failed requests count toward the daily limit too. Keep lastAt for successful checks only.
+    await storeSet($, LAST_ATTEMPT_KEY, now)
     const res = await fetchLatest($)
     if (!res.ok) return
     const body: unknown = JSON.parse(res.text)

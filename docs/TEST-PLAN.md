@@ -1,7 +1,14 @@
 # Test plan
 
 ## Harness
-Engine test kit (`claude-code/testing`) run with the desktop app's bundled CLI 2.1.317 (`plugin test <folder>`); the npm `claude` on PATH is 2.1.209 and lacks it. Tests live in `tests/*.test.tsx` (one per feature, plus `register.test.tsx` for the main module and `smoke.test.tsx`). During development they are grouped A–H under `scratchpad/testmods/<G>/tests` and run one group at a time (`run_group_tests.sh`) so the machine stays usable; the preview harness (`testmods/P`) renders all 58 screens to HTML.
+Use the engine test kit (`claude-code/testing`) with Claude Code 2.1.319 and run `claude plugin test .`
+from the plugin root. The expected result is 1,943 passing tests across 102 files; see
+[the test instructions](../tests/README.md). Tests live in `tests/*.test.tsx` and import their shared
+helpers from the same directory. The current backdrop implementation and mocks use `theme.set` /
+`theme.clear`; 2.1.317's `ui.backdrop` API is no longer used.
+
+Earlier development used grouped fixtures under `scratchpad/testmods/` and a separate preview
+harness. Those scripts are not part of this checkout; the checklists below record that development plan.
 
 ## Per feature (existing checklist, kept)
 Load + command registration · every command argument form · every pane and every Button/Input · every hook with good and bad inputs · band line, chip and detail pane · off switch · timers via mock clock · English and Hebrew.
