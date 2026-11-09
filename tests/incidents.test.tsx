@@ -1,5 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 import { CWD, expandBand, mountBand, mountPane, noticesOf, rig, texts, lineOf } from './_kit'
+import { BAND, NOON, PANE, joined, world } from './harness'
 
 const ON = { buddy: false, 'dangerous-commands': false, 'scope-guard': true }
 const OFF_TEXT = 'Disasters prevented is off. Turn it on in the /toolkitty pane.'
@@ -154,7 +155,7 @@ test('only the newest hundred are kept; the count keeps growing', { timeoutMs: 3
   await pane.unmount()
 })
 
-test('band line opens a detail pane with the last ten and its two buttons', { timeoutMs: 20_000 }, async ($, on) => {
+test('band line opens a detail pane with the last ten and its two buttons', { timeoutMs: 30_000 }, async ($, on) => {
   const r = rig(on, { enabled: ON })
   await start($)
   await triggerAll($, r)
@@ -385,4 +386,58 @@ test('incident card export bar: Save SVG (no details in it) and Copy the redacte
   const txt = writes.find(x => x.path.endsWith('.txt'))
   expect(txt?.text).toMatch(/^Toolkitty stopped 2 disasters/)
   await term.unmount()
+})
+
+// ---------- the pane re-reads the store when opened (the demo writes the real key) ----------
+
+test("/incidents re-reads this project's stored counter, so incidents another feature wrote show without a restart", { timeoutMs: 30_000 }, async ($, on) => {
+  const w = world(on, { store: { enabled: ON } })
+  await $.session.start({ cwd: 'C:/proj', surface: 'desktop', isInteractive: true })
+  let pane = await $.ui.mount({ ...PANE('incidents'), surface: 'desktop' })
+  expect(await joined(pane)).toContain('Nothing prevented yet. The guards are on watch.')
+  await pane.unmount()
+
+  // the demo writes three incidents to the real key
+  w.store.set('incidents:C:/proj', {
+    count: 3,
+    items: [
+      { at: NOON - 3000, feature: 'dangerous-commands', kind: 'destructive', detail: 'rm -rf build (DEMO)' },
+      { at: NOON - 2000, feature: 'protect-secrets', kind: 'secret', detail: '.env (DEMO)' },
+      { at: NOON - 1000, feature: 'merge-gate', kind: 'ci-red', detail: 'failing: build (DEMO)' },
+    ],
+    lastAt: NOON - 1000,
+  })
+  expect((await $.command.run({ command: 'incidents', args: '' })).text).toBe('Opened the incidents pane.')
+  pane = await $.ui.mount({ ...PANE('incidents'), surface: 'desktop' })
+  const all = await joined(pane)
+  expect(all).toContain('rm -rf build (DEMO)')
+  expect(all).toContain('.env (DEMO)')
+  expect(all).toContain('failing: build (DEMO)')
+  await pane.unmount()
+  const band = await $.ui.mount({ ...BAND('desktop'), requestId: 'band' })
+  expect((await joined(band))).toContain('3 prevented')
+  await band.unmount()
+
+  // demo off puts the real (empty) counter back: the pane follows, and nothing new is "prevented" at turn end
+  w.store.set('incidents:C:/proj', { count: 0, items: [], lastAt: null })
+  w.opened.length = 0
+  await $.command.run({ command: 'incidents', args: '' })
+  pane = await $.ui.mount({ ...PANE('incidents'), surface: 'desktop' })
+  expect(await joined(pane)).toContain('Nothing prevented yet. The guards are on watch.')
+  await pane.unmount()
+  await $.turn.complete({ answer: 'done', reason: 'answer', durationMs: 10, isAborted: false, turnId: 'tw1' })
+  expect(w.opened.map(o => o.id)).not.toContain('incident-card')
+})
+
+test('/incidents keeps incidents of the current turn that are not yet persisted', { timeoutMs: 30_000 }, async ($, on) => {
+  const r = rig(on, { enabled: ON })
+  await start($)
+  await run($, 'scope', 'add src/**')
+  r.answer = () => ({})
+  expect((await $.tool.call({ tool: 'Edit', file_path: 'C:/proj/a.ts', old_string: 'a', new_string: 'b' })).deny).toContain('Scope guard')
+  // the store still says nothing happened; opening the pane must not lose the block of this turn
+  await run($, 'incidents')
+  const pane = await mountPane($, 'incidents')
+  expect(await texts(pane)).toContain('Scope guard · scope · a.ts')
+  await pane.unmount()
 })

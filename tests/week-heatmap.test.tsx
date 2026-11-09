@@ -390,3 +390,55 @@ test('the pane headers: Activity shows the streak and opens Wrapped; Wrapped hol
     await wr.unmount()
   }
 })
+
+// ---------- the panes re-read the store when opened (the demo writes the real keys) ----------
+
+test('opening by command re-reads the store: weeks another feature wrote show without a restart, and leave when removed', { timeoutMs: 30_000 }, async ($, on) => {
+  const w = world(on)
+  await start($)
+  let ui = await $.ui.mount({ ...PANE('heatmap'), surface: 'terminal' })
+  expect(await joined(ui)).toContain('No data yet: finish a turn and come back.')
+  await ui.unmount()
+
+  // someone (the demo) writes the keys behind the feature's back
+  w.store.set('week-heatmap:days', seeded())
+  w.store.set('week-heatmap:longest', 90 * 60_000)
+  expect((await $.command.run({ command: 'heatmap', args: '' })).text).toBe('Opened.')
+  ui = await $.ui.mount({ ...PANE('heatmap'), surface: 'terminal' })
+  let all = await joined(ui)
+  expect(all).toContain('Current streak:')
+  expect(all).toContain('3 days')
+  expect(all).toContain('4.8')
+  await ui.unmount()
+
+  expect((await $.command.run({ command: 'wrapped', args: '' })).text).toBe('Opened.')
+  ui = await $.ui.mount({ ...PANE('wrapped'), surface: 'terminal' })
+  all = await joined(ui)
+  expect(all).not.toContain('No data yet')
+  expect(all).toContain('4.8')
+  await ui.unmount()
+
+  // the keys are removed again (demo off restores an empty store): the panes follow on the next open
+  w.store.delete('week-heatmap:days')
+  w.store.delete('week-heatmap:longest')
+  await $.command.run({ command: 'heatmap', args: '' })
+  ui = await $.ui.mount({ ...PANE('heatmap'), surface: 'terminal' })
+  expect(await joined(ui)).toContain('No data yet: finish a turn and come back.')
+  await ui.unmount()
+})
+
+test('the open-wrapped and open-heatmap buttons re-read the store too', { timeoutMs: 30_000 }, async ($, on) => {
+  const w = world(on, { store: { 'week-heatmap:days': seeded() } })
+  await start($)
+  const ui = await $.ui.mount({ ...PANE('heatmap'), surface: 'desktop' })
+  const more = seeded()
+  more[dayKey(NOON - 3 * DAY)] = day(1, 1, 100, 0.1)
+  w.store.set('week-heatmap:days', more)
+  await ui.press({ key: 'open-wrapped' })
+  await w.clock.settle()
+  expect(w.opened.map(o => o.id)).toContain('wrapped')
+  const after = await joined(ui)
+  expect(after).toContain('4 days')
+  expect(after).toContain('5.8')
+  await ui.unmount()
+})

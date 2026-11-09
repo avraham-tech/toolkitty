@@ -46,7 +46,7 @@ Scene order for a longer take: `calm` (3 s) then `/demo scene busy` then `/demo 
 
 ## Known limits
 
-- `/heatmap`, `/wrapped` and `/incidents` draw from state the features load into memory at session start, so they do not show the demo's store values until those features re-read their keys (the demo writes the real keys, as specified, and cannot reach another feature's state). `/savings`, `/sessions` and the buddy's evolution read their stores while drawing and do show the demo. If you need the heatmap in a shot, that is a small change in `week-heatmap.tsx` (re-read `week-heatmap:days` when the pane opens).
+- `/heatmap`, `/wrapped`, `/incidents` and `/buddy` re-read their store keys when their pane is opened by command or button, so the demo's values show as soon as you open them (and the real values come back after `/demo off` the same way). The band chips of those features still show what was in memory until the next turn ends; a pane already open when `/demo on` ran redraws on its next open.
 - `achievements:unlocked` has no reader yet; the demo writes it so the achievements pane will show it when it exists. Its item shape (`{ id, at, title }`) is the demo's own guess.
 - Quiet mode (the notices preference) drops non-alert notices, so with quiet mode on, only the alerts of the demo are recorded.
 - Signal texts (`npm test`, `2 running · 1 denied`) stay in English because the advisor matches on them; the DEMO label for signals is the band chip.

@@ -10,6 +10,8 @@ All notable changes to Toolkitty are listed here.
   connection failures or timeouts, while preserving the last successful check and release.
 - Correct documented command names and model-call privacy details; replace placeholder demo text
   with working commands and remove a duplicate property in a test fixture.
+- Mascot states: the buddy reads the signals bus and strikes a pose per state: typing while a tool works, worried from 70 % context, shield on a fresh incident (60 s), celebrating or worried on fresh test/build/lint evidence, tail-chasing on a loop, asleep from 90 % quota. Order of importance: shield, loop, quota, evidence, context, working; then the turn's own state. The Minimal profile keeps the buddy calm (no bus reactions). The pet share card draws the same pose (static emblem + the pose word) from `buddy:mood`.
+- `/heatmap`, `/wrapped`, `/incidents` and `/buddy` re-read their store keys when opened by command or button, so `/demo` data (and its removal on `/demo off`) shows without a restart.
 
 ## 0.1.0 — 2026-11-09
 

@@ -481,6 +481,25 @@ async function shareCard($: EngineInterface, surface: RenderSurface): Promise<vo
 
 // ---------- handlers ----------
 
+/**
+ * Reads the stored days, tools and longest turn into memory. Every turn end writes the store right after
+ * the state, so nothing is lost; a pane re-reads on open so values another feature wrote to the keys
+ * (the demo's synthetic weeks) show without a restart.
+ */
+async function reloadStats($: EngineInterface): Promise<void> {
+  const days = await storeGet<Record<string, Day>>($, 'week-heatmap:days', {})
+  const tools = await storeGet<Record<string, number>>($, 'week-heatmap:tools', {})
+  const longest = await storeGet<number>($, 'week-heatmap:longest', 0)
+  await update($, stats, () => ({ days, tools, longest }))
+}
+
+/** Re-reads the store, then opens the heatmap or the Wrapped pane. */
+async function openPane($: EngineInterface, which: 'heatmap' | 'wrapped'): Promise<void> {
+  await reloadStats($)
+  if (which === 'heatmap') await $.ui.open({ id: 'heatmap', title: t(T.heatTitle) })
+  else await $.ui.open({ id: 'wrapped', title: t(T.wrappedTitle) })
+}
+
 export async function onSessionStart($: EngineInterface, e: Input<'session.start'>): Promise<void> {
   try {
     await $.command.register({ name: 'heatmap', description: t(T.heatCmd) })
@@ -494,10 +513,7 @@ export async function onSessionStart($: EngineInterface, e: Input<'session.start
   }
   if (!(await isOn($, feature))) return
 
-  const days = await storeGet<Record<string, Day>>($, 'week-heatmap:days', {})
-  const tools = await storeGet<Record<string, number>>($, 'week-heatmap:tools', {})
-  const longest = await storeGet<number>($, 'week-heatmap:longest', 0)
-  await update($, stats, () => ({ days, tools, longest }))
+  await reloadStats($)
   const usage = await $.session.usage()
   lastCost = usage.cost?.usd ?? null
 }
@@ -603,7 +619,7 @@ async function drawHeatmap($: EngineInterface, e: RenderInput<'Pane'>): Promise<
             key: 'open-wrapped',
             label: t(T.openWrapped),
             onPress: () => {
-              void $.ui.open({ id: 'wrapped', title: t(T.wrappedTitle) })
+              void openPane($, 'wrapped')
             },
           },
         ],
@@ -680,7 +696,7 @@ async function drawWrapped($: EngineInterface, e: RenderInput<'Pane'>): Promise<
         key: 'open-heatmap',
         label: t(T.openHeatmap),
         onPress: () => {
-          void $.ui.open({ id: 'heatmap', title: t(T.heatTitle) })
+          void openPane($, 'heatmap')
         },
       },
     ],
@@ -736,13 +752,13 @@ async function drawWrapped($: EngineInterface, e: RenderInput<'Pane'>): Promise<
 export function register(on: On) {
   on('command.run', { command: 'heatmap' }, async $ => {
     if (!(await isOn($, feature))) return { text: t(T.off) }
-    await $.ui.open({ id: 'heatmap', title: t(T.heatTitle) })
+    await openPane($, 'heatmap')
     return { text: t(T.opened) }
   })
 
   on('command.run', { command: 'wrapped' }, async $ => {
     if (!(await isOn($, feature))) return { text: t(T.off) }
-    await $.ui.open({ id: 'wrapped', title: t(T.wrappedTitle) })
+    await openPane($, 'wrapped')
     return { text: t(T.opened) }
   })
 

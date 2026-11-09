@@ -276,6 +276,22 @@ export async function onSessionStart($: EngineInterface, e: Input<'session.start
   shown = Math.max(shown, (await read($, incidents)).count)
 }
 
+/**
+ * Re-reads this project's stored counter when the pane opens, so values another feature wrote to the key
+ * (the demo's synthetic incidents, or their removal) show without a restart. Skipped while this turn holds
+ * incidents not yet persisted (the store is written at turn end, when `shown` catches up with the count).
+ */
+async function reloadIncidents($: EngineInterface): Promise<void> {
+  const cur = await read($, incidents)
+  if (cur.count > shown) return
+  const cwd = await $.session.cwd()
+  const stored = await storeGet<Incidents>($, storeKey(cwd), { count: 0, items: [], lastAt: null })
+  const next: Incidents = { count: stored.count, items: stored.items.slice(-KEEP), lastAt: stored.lastAt ?? null }
+  if (next.count === cur.count && next.lastAt === cur.lastAt && next.items.length === cur.items.length) return
+  await update($, incidents, () => next)
+  shown = next.count
+}
+
 export async function onTurnComplete($: EngineInterface, e: Input<'turn.complete'>): Promise<void> {
   if (e.agentId !== undefined) return
   if (!(await isOn($, feature))) {
@@ -348,6 +364,7 @@ export async function renderBand($: EngineInterface, e: BandInput): Promise<Band
 export function register(on: On) {
   on('command.run', { command: 'incidents' }, async $ => {
     if (!(await isOn($, feature))) return { text: t(T.off) }
+    await reloadIncidents($)
     await $.ui.open({ id: PANE_ID, title: t(T.paneTitle) })
     return { text: t(T.opened) }
   })
