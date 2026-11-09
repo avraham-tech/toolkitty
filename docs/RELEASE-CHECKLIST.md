@@ -64,4 +64,4 @@ Current: MIT (max adoption; copying allowed, credit required). Alternatives: AGP
 - [x] Public repo https://github.com/avraham-tech/toolkitty, branch main, first commit clean (secrets grep + username grep empty), `.gitattributes` LF.
 - [x] Topics, Ko-fi homepage, Discussions on.
 - [ ] Upload `docs/assets/banner.png` as Social preview (GitHub web UI only).
-- [ ] Tag `v0.1.0` + GitHub release after the clean-profile install test (the update check reads releases).
+- [x] `v0.1.0` tagged and released 2026-11-09: https://github.com/avraham-tech/toolkitty/releases/tag/v0.1.0
