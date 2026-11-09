@@ -64,6 +64,12 @@ const state = atom({ plugin: 'toolkitty', key: 'slot', id: 'output-archive' } as
 const savings = atom({ plugin: 'toolkitty', key: 'slot', id: 'savings' } as const, { tokens: 0, usd: 0, byFeature: {}, leaks: {} } as Savings) as unknown as Atom<Savings>
 
 const LIMIT = 8000
+/**
+ * A Read is a file the model asked for by name, and it is on disk already: cutting it at LIMIT only buys a
+ * second read of the archived copy. So a Read is cut only when it is very long, and never when the model
+ * scoped it itself with `offset` or `limit`.
+ */
+const READ_LIMIT = 40_000
 const HEAD = 3000
 const MAX_FILE = 3_900_000
 const MAX_RECALL = 8000
@@ -168,10 +174,11 @@ export async function afterToolCall($: EngineInterface, e: ToolCallInput, result
 
   if (e.tool === 'Read') {
     if (e.file_path.includes('toolkitty-archive')) return result
+    if (e.offset !== undefined || e.limit !== undefined) return result
     const ran = result as ToolCallResult<'Read'>
     if (ran.deny !== undefined || ran.isError || ran.result.type !== 'text') return result
     const content = ran.result.file.content
-    if (content.length <= LIMIT) return result
+    if (content.length <= READ_LIMIT) return result
     const done = await archiveText($, 'Read', content)
     if (done === undefined) return result
     const { text: oldText, ...rest } = ran

@@ -129,9 +129,10 @@ test('a write that fails leaves the output as it was', SLOW, async ($, on) => {
 test('a Read of a long file keeps the start and a note; reading the archive itself is not archived again', SLOW, async ($, on) => {
   const w = boot(on, store())
   await begin($, w)
-  const content = rows(1500, 'src')
+  const content = rows(3000, 'src')
+  expect(content.length).toBeGreaterThan(40_000)
   const file = (path: string, c: string) => ({
-    result: { type: 'text', file: { filePath: path, content: c, numLines: 1500, startLine: 1, totalLines: 1500 } },
+    result: { type: 'text', file: { filePath: path, content: c, numLines: 3000, startLine: 1, totalLines: 3000 } },
     text: c,
   })
   w.toolResult = e => file(e.file_path, content)
@@ -144,6 +145,33 @@ test('a Read of a long file keeps the start and a note; reading the archive itse
   // a small file passes
   w.toolResult = e => file(e.file_path, 'tiny')
   expect((await $.tool.call({ tool: 'Read', file_path: 'C:/proj/a.ts' })).result.file.content).toBe('tiny')
+})
+
+test('a Read is a file the model asked for: up to 40,000 characters, or scoped by offset or limit, it stays whole', SLOW, async ($, on) => {
+  const w = boot(on, store())
+  await begin($, w)
+  const file = (path: string, c: string) => ({
+    result: { type: 'text', file: { filePath: path, content: c, numLines: 1, startLine: 1, totalLines: 1 } },
+    text: c,
+  })
+  // far past the 8,000 of other tools, and the file is already on disk: cutting it would only cost a second read
+  const medium = 'm'.repeat(40_000)
+  w.toolResult = e => file(e.file_path, medium)
+  const whole = await $.tool.call({ tool: 'Read', file_path: 'C:/proj/notes.md' })
+  expect(whole.result.file.content).toBe(medium)
+  expect(whole.context).toBeUndefined()
+  // one character more is archived
+  const big = 'b'.repeat(40_001)
+  w.toolResult = e => file(e.file_path, big)
+  const cut = await $.tool.call({ tool: 'Read', file_path: 'C:/proj/big.md' })
+  expect(cut.result.file.content).toBe(`${big.slice(0, 3000)}\n${footer(1)}`)
+  // a read the model scoped itself is never cut, whatever its size
+  const part = await $.tool.call({ tool: 'Read', file_path: 'C:/proj/big.md', offset: 100, limit: 2000 })
+  expect(part.result.file.content).toBe(big)
+  expect(part.context).toBeUndefined()
+  expect((await $.tool.call({ tool: 'Read', file_path: 'C:/proj/big.md', limit: 2000 })).result.file.content).toBe(big)
+  expect((await archive($)).text).toContain('#1')
+  expect((await archive($)).text).not.toContain('#2')
 })
 
 test('Grep content, Grep file lists, Glob and WebFetch are archived too', SLOW, async ($, on) => {
