@@ -1,6 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { Atom, EngineInterface, On, RenderElement } from 'claude-code'
 
+import { clearBackdrop, setBackdrop } from '../backdrop'
 import { isOn, notice, t } from '../core'
 import type { BandInput, Feature, Input, Notices } from '../core'
 import { ICONS, emptyState, listRow, paneHeader, sectionTitle } from '../ui'
@@ -212,6 +213,8 @@ export const feature: Feature = { id: 'selftest', title: T.title, description: T
 
 const PANE = 'selftest'
 const AURORA_ID = 'aurora-backdrop'
+/** Aurora's own slot, read for `wanted`: /aurora turns the backdrop off for the session while the switch stays on. */
+const auroraSlot = atom({ plugin: 'toolkitty', key: 'slot', id: AURORA_ID } as const, { wanted: true } as { wanted: boolean }) as unknown as Atom<{ wanted: boolean }>
 /** When this module was loaded: failure notices from before a reload are not this build's. */
 const loadedAt = Date.now()
 
@@ -450,18 +453,18 @@ async function checkPane($: EngineInterface, ctx: Ctx, id: string): Promise<Outc
 async function checkBackdrop($: EngineInterface, ctx: Ctx): Promise<Outcome> {
   if (!ctx.surfaces.includes('desktop')) return { ok: 'skipped', detail: t(T.dDesktopOnly) }
   const aurora = catalog.find(f => f.id === AURORA_ID)
-  if (aurora !== undefined && (await isOn($, aurora))) {
+  if (aurora !== undefined && (await isOn($, aurora)) && (await read($, auroraSlot)).wanted) {
     // Aurora is up (or trying): re-issue its own backdrop and report the surface's verdict without clearing it.
-    const r = await $.theme.set({ backdrop: { id: 'aurora', glass: { blur: 18, opacity: 0.5 } } })
+    const r = await setBackdrop($, { id: 'aurora', glass: { blur: 18, opacity: 0.5 } })
     return r.isDrawn ? { ok: true, detail: t(T.dDrawn) } : { ok: false, detail: reasonOf(r.reason) }
   }
   try {
-    const r = await $.theme.set({ backdrop: { id: 'selftest' } })
+    const r = await setBackdrop($, { id: 'selftest' })
     return r.isDrawn ? { ok: true, detail: t(T.dDrawn) } : { ok: false, detail: reasonOf(r.reason) }
   } finally {
-    // Only reached when no aurora backdrop was up, so clearing leaves nothing of the person's behind.
+    // Only reached when aurora is off or turned off by /aurora, so clearing leaves nothing of the person's behind.
     try {
-      await $.theme.clear()
+      await clearBackdrop($)
     } catch {
       // the surface went away
     }

@@ -171,7 +171,7 @@ test('it goes up later when a desktop attaches after a terminal-only start', { t
   expect(w.backdrops[0]).toMatchObject({ id: 'aurora' })
 })
 
-test('turning the feature off calls $.theme.clear() at the next turn', { timeoutMs: 30_000 }, async ($, on) => {
+test('turning the feature off clears the backdrop at the next turn', { timeoutMs: 30_000 }, async ($, on) => {
   const w = world(on, { store: ON })
   await start($)
   expect(w.backdrops.length).toBe(1)

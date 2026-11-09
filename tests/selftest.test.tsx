@@ -1,4 +1,5 @@
 import { expect, mock, test } from 'claude-code/testing'
+import { mockBackdrop } from './engine'
 
 /*
  * The live self-test. The engine side (everything the plugin calls on `$`) is answered below; each test changes what the
@@ -124,14 +125,16 @@ function rig(on: any, o: { store?: Record<string, unknown>; surfaces?: string[] 
     if (w.placeThrow !== undefined) return { deny: w.placeThrow } as never
     return { value: w.placeRes } as never
   })
-  on('theme.set', (_: any, e: any) => {
-    w.backdrops.push(e.backdrop)
-    return { value: w.backdropRes } as never
-  })
-  on('theme.clear', () => {
-    w.backdrops.push(undefined)
-    return { value: { isDrawn: false, reason: 'the theme is cleared' } } as never
-  })
+  mockBackdrop(
+    on,
+    backdrop => {
+      w.backdrops.push(backdrop)
+      return w.backdropRes
+    },
+    () => {
+      w.backdrops.push(undefined)
+    },
+  )
   on('audio.play', (_: any, e: any) => {
     w.played.push(JSON.stringify(e))
     if (w.audioFail !== undefined) return { deny: w.audioFail } as never
@@ -496,6 +499,19 @@ test('with aurora on, the backdrop check re-issues the aurora backdrop and repor
   const mine = w.backdrops.slice(before)
   expect(mine).toEqual([{ id: 'aurora', glass: { blur: 18, opacity: 0.5 } }])
   expect(w.backdrops.some(b => (b as { id?: string } | undefined)?.id === 'selftest')).toBe(false)
+})
+
+test('with aurora switched on but turned off by /aurora, the check uses its own backdrop and clears it', { timeoutMs: 30_000 }, async ($, on) => {
+  const w = rig(on, { store: { enabled: { 'aurora-backdrop': true } } })
+  await start($)
+  await $.command.run({ command: 'aurora', args: '' })
+  const before = w.backdrops.length
+  await run($, w)
+  const ui = await mountPane($)
+  expect(await texts(ui)).toContain(row('✓', 'Backdrop', 'drawn'))
+  await ui.unmount()
+  // nothing of aurora's is put back up behind the person's back, and the probe is cleared
+  expect(w.backdrops.slice(before)).toEqual([{ id: 'selftest' }, undefined])
 })
 
 test('with aurora on, a backdrop the surface refuses is a failed row carrying the surface reason', { timeoutMs: 30_000 }, async ($, on) => {

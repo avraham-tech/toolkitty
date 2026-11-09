@@ -1,5 +1,7 @@
 import { mock } from 'claude-code/testing'
 
+import { mockBackdrop } from './engine'
+
 export const norm = (p: string): string => p.split(String.fromCharCode(92)).join("/")
 
 // The engine side of a toolkitty test: every call the plugin makes on `$` is answered here.
@@ -153,16 +155,18 @@ export function world(on: any, o: Opts = {}): World {
     w.copies.push({ text: e.text, surface: e.surface })
     return { value: { isCopied: w.copyOk } }
   })
-  on('theme.set', (_: any, e: any) => {
-    if (w.failBackdrop) throw new Error('no surface')
-    w.backdrops.push(e.backdrop)
-    return { value: e.backdrop === undefined ? undefined : { isDrawn: true, requestId: 'backdrop' } }
-  })
-  on('theme.clear', () => {
-    if (w.failBackdrop) throw new Error('no surface')
-    w.backdrops.push(undefined)
-    return { value: { isDrawn: false, reason: 'the theme is cleared' } }
-  })
+  mockBackdrop(
+    on,
+    backdrop => {
+      if (w.failBackdrop) throw new Error('no surface')
+      w.backdrops.push(backdrop)
+      return { isDrawn: true, requestId: 'backdrop' }
+    },
+    () => {
+      if (w.failBackdrop) throw new Error('no surface')
+      w.backdrops.push(undefined)
+    },
+  )
   on('session.surfaces', () => ({ value: w.surfaces }))
   on('session.cwd', () => ({ value: w.cwd }))
   on('session.id', () => ({ value: 'test-session' }))
