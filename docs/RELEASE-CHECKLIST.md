@@ -59,3 +59,9 @@ Current: MIT (max adoption; copying allowed, credit required). Alternatives: AGP
 - [ ] Three README GIFs are commented placeholders: `docs/assets/gif-companion.gif`, `gif-guardrail.gif`, `gif-smart-bar.gif` (LAUNCH-PLAN section 6).
 - [ ] Create the GitHub repository `avraham-tech/toolkitty`; verify both install forms on a clean profile (comment in README source).
 - [ ] Record the test total in CHANGELOG.md; `INSTALL_CMD` in `hooks/sharing.ts` still to be replaced.
+
+## Repository (done 2026-11-09)
+- [x] Public repo https://github.com/avraham-tech/toolkitty, branch main, first commit clean (secrets grep + username grep empty), `.gitattributes` LF.
+- [x] Topics, Ko-fi homepage, Discussions on.
+- [ ] Upload `docs/assets/banner.png` as Social preview (GitHub web UI only).
+- [ ] Tag `v0.1.0` + GitHub release after the clean-profile install test (the update check reads releases).
