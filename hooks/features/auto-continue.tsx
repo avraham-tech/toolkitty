@@ -10,7 +10,7 @@ const CONTINUE_EN =
   'The usage limit has reset. Continue the task you were working on from exactly where it stopped. First briefly summarize what remains to be done (a few lines), then carry on. If nothing remains, say so and stop. Write your reply in {lang}.'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: {
     en: 'Auto-continue after limit',
     he: 'המשך אוטומטי אחרי מגבלה',
@@ -33,13 +33,13 @@ const T = {
     ja: '使用量の上限に達したら、ウィンドウがリセットされるまで待ち、自動でタスクを再開します。',
     pt: 'Ao atingir um limite de uso, espera a janela reiniciar e retoma a tarefa automaticamente.',
     de: 'Wenn ein Nutzungslimit erreicht ist, wartet es auf das Zurücksetzen des Fensters und setzt die Aufgabe dann automatisch fort.',
-    ko: '사용량 한도에 도달하면 창이 초기화될 때까지 기다린 뒤 작업을 자동으로 이어갑니다.',
+    ko: '사용량 한도에 도달하면 한도 구간이 초기화될 때까지 기다린 뒤 작업을 자동으로 이어갑니다.',
   },
   off: {
     en: 'The feature is off; turn it on in the /toolkitty pane',
     he: 'השכלול כבוי; הפעל אותו בלוח /toolkitty',
     es: 'La función está desactivada; actívala en el panel /toolkitty',
-    fr: 'La fonctionnalité est désactivée ; activez-la dans le panneau /toolkitty',
+    fr: 'La fonctionnalité est désactivée ; active-la dans le panneau /toolkitty',
     ru: 'Функция отключена; включите её в панели /toolkitty',
     zh: '该功能已关闭；请在 /toolkitty 面板中开启',
     ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
@@ -80,9 +80,9 @@ const T = {
     he: 'ההמשך האוטומטי נעצר: המגבלה עדיין חסמה אחרי {n} ניסיונות.',
     es: 'Continuación automática detenida: el límite seguía activo tras {n} intentos.',
     fr: 'Reprise automatique arrêtée : la limite était toujours atteinte après {n} tentatives.',
-    ru: 'Автопродолжение остановлено: лимит всё ещё действует после попыток: {n}.',
+    ru: 'Автопродолжение остановлено: лимит всё ещё действует (попыток: {n}).',
     zh: '自动继续已停止：尝试 {n} 次后仍然触及限额。',
-    ja: '自動再開を停止しました: {n} 回試行しても上限に達したままでした。',
+    ja: '自動再開を停止しました：{n} 回試行しても上限に達したままでした。',
     pt: 'Continuação automática interrompida: o limite ainda estava ativo após {n} tentativas.',
     de: 'Automatisches Fortsetzen gestoppt: Das Limit war nach {n} Versuchen noch aktiv.',
     ko: '자동 계속이 중지되었습니다: {n}번 시도 후에도 한도가 풀리지 않았습니다.',
@@ -127,13 +127,13 @@ const T = {
   statusArmed: {
     en: 'Auto-continue is armed: resuming in {time} (attempt {n} of {max}).',
     he: 'ההמשך האוטומטי דרוך: ממשיך בעוד {time} (ניסיון {n} מתוך {max}).',
-    es: 'Continuación automática armada: se reanuda en {time} (intento {n} de {max}).',
+    es: 'Continuación automática programada: se reanuda en {time} (intento {n} de {max}).',
     fr: 'Reprise automatique armée : reprise dans {time} (tentative {n} sur {max}).',
     ru: 'Автопродолжение запланировано: через {time} (попытка {n} из {max}).',
     zh: '自动继续已就绪：将在 {time}后恢复（第 {n} 次，共 {max} 次）。',
-    ja: '自動再開が待機中: {time}後に再開します（{n}/{max} 回目）。',
+    ja: '自動再開が待機中：{time}後に再開します（{n}/{max} 回目）。',
     pt: 'A continuação automática está armada: retoma em {time} (tentativa {n} de {max}).',
-    de: 'Automatisches Fortsetzen ist scharf: Weiter in {time} (Versuch {n} von {max}).',
+    de: 'Automatisches Fortsetzen ist bereit: weiter in {time} (Versuch {n} von {max}).',
     ko: '자동 계속 대기 중: {time} 후 재개합니다({max}회 중 {n}번째 시도).',
   },
   cancelled: {
@@ -164,7 +164,7 @@ const T = {
     en: 'Turn auto-continue on or off in the /toolkitty pane. Here you can use status or cancel.',
     he: 'הפעלה וכיבוי של ההמשך האוטומטי נעשים בלוח /toolkitty. כאן אפשר להשתמש ב-status או cancel.',
     es: 'Activa o desactiva la continuación automática en el panel /toolkitty. Aquí puedes usar status o cancel.',
-    fr: 'Activez ou désactivez la reprise automatique dans le panneau /toolkitty. Ici, utilisez status ou cancel.',
+    fr: 'Active ou désactive la reprise automatique dans le panneau /toolkitty. Ici, utilise status ou cancel.',
     ru: 'Включать и отключать автопродолжение можно в панели /toolkitty. Здесь доступны status и cancel.',
     zh: '请在 /toolkitty 面板中开启或关闭自动继续。这里可使用 status 或 cancel。',
     ja: '自動再開のオン/オフは /toolkitty ペインで切り替えます。ここでは status または cancel が使えます。',

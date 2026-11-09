@@ -12,10 +12,10 @@ const T = {
     es: 'Inyecta en el modelo la rama, los archivos modificados y los últimos commits, y se actualiza en cada turno.',
     fr: 'Injecte dans le modèle la branche, les fichiers modifiés et les derniers commits, et se met à jour à chaque tour.',
     ru: 'Передаёт модели ветку, изменённые файлы и последние коммиты; обновляется каждый ход.',
-    zh: '将分支、已更改文件和最新提交注入模型，每个回合刷新。',
+    zh: '将分支、已更改文件和最新提交注入模型，每轮刷新。',
     ja: 'ブランチ、変更されたファイル、最新のコミットをモデルに渡し、ターンごとに更新します。',
     pt: 'Injeta no modelo o branch, os arquivos alterados e os últimos commits, atualizados a cada turno.',
-    de: 'Gibt dem Modell Branch, geänderte Dateien und letzte Commits mit, bei jedem Turn aktualisiert.',
+    de: 'Gibt dem Modell Branch, geänderte Dateien und letzte Commits mit, bei jedem Durchgang aktualisiert.',
     ko: '브랜치, 변경된 파일, 최근 커밋을 모델에 주입하며 매 턴 갱신됩니다.',
   },
 } as const

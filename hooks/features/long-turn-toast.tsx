@@ -5,9 +5,9 @@ import { isOn, notice, t } from '../core'
 import type { Feature, Input } from '../core'
 
 const T = {
-  title: { en: 'Long turn', he: 'תור ארוך', es: 'Turno largo', fr: 'Tour long', ru: 'Долгий ход', zh: '长回合', ja: '長いターン', pt: 'Turno longo', de: 'Langer Turn', ko: '긴 턴' },
-  description: { en: 'A toast every 5 minutes while a turn runs for a long time.', he: 'הודעה קופצת כל 5 דקות כשתור רץ זמן רב.', es: 'Un aviso cada 5 minutos mientras un turno se ejecuta durante mucho tiempo.', fr: 'Une notification toutes les 5 minutes lorsqu\'un tour dure longtemps.', ru: 'Уведомление каждые 5 минут, пока ход выполняется долго.', zh: '回合运行很久时，每 5 分钟弹出一次提示。', ja: 'ターンが長く続くとき、5 分ごとにトーストを表示します。', pt: 'Um aviso a cada 5 minutos enquanto um turno demora muito.', de: 'Alle 5 Minuten ein Toast, solange ein Turn lange läuft.', ko: '턴이 오래 실행되는 동안 5분마다 토스트를 띄웁니다.' },
-  running: { en: 'The turn has been running for {n} minutes', he: 'התור רץ כבר {n} דקות', es: 'El turno lleva {n} minutos en ejecución', fr: 'Le tour s\'exécute depuis {n} minutes', ru: 'Ход выполняется уже {n} мин.', zh: '该回合已运行 {n} 分钟', ja: 'このターンは {n} 分間実行されています', pt: 'O turno está em execução há {n} minutos', de: 'Der Turn läuft seit {n} Minuten', ko: '이 턴이 {n}분째 실행 중입니다' },
+  title: { en: 'Long turn', he: 'תור ארוך', es: 'Turno largo', fr: 'Tour long', ru: 'Долгий ход', zh: '长时间轮次', ja: '長いターン', pt: 'Turno longo', de: 'Langer Durchgang', ko: '긴 턴' },
+  description: { en: 'A toast every 5 minutes while a turn runs for a long time.', he: 'הודעה קופצת כל 5 דקות כשתור רץ זמן רב.', es: 'Un aviso cada 5 minutos mientras un turno se ejecuta durante mucho tiempo.', fr: 'Une notification toutes les 5 minutes lorsqu\'un tour dure longtemps.', ru: 'Уведомление каждые 5 минут, пока ход выполняется долго.', zh: '一轮运行很久时，每 5 分钟弹出一次提示。', ja: 'ターンが長く続くとき、5 分ごとにトーストを表示します。', pt: 'Um aviso a cada 5 minutos enquanto um turno demora muito.', de: 'Alle 5 Minuten ein Toast, solange ein Durchgang lange läuft.', ko: '턴이 오래 실행되는 동안 5분마다 토스트를 띄웁니다.' },
+  running: { en: 'The turn has been running for {n} minutes', he: 'התור רץ כבר {n} דקות', es: 'El turno lleva {n} minutos en ejecución', fr: 'Le tour s\'exécute depuis {n} minutes', ru: 'Ход выполняется уже {n} мин.', zh: '这一轮已运行 {n} 分钟', ja: 'このターンは {n} 分間実行されています', pt: 'O turno está em execução há {n} minutos', de: 'Der Durchgang läuft seit {n} Minuten', ko: '이 턴이 {n}분째 실행 중입니다' },
 } as const
 
 type State = { startedAt: number | null }

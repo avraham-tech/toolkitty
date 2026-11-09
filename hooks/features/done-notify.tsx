@@ -34,7 +34,7 @@ const T = {
     en: 'Claude Code is waiting for your approval ({tool})',
     he: 'Claude Code ממתין לאישור שלך ({tool})',
     es: 'Claude Code espera tu aprobación ({tool})',
-    fr: 'Claude Code attend votre approbation ({tool})',
+    fr: 'Claude Code attend ton approbation ({tool})',
     ru: 'Claude Code ожидает вашего подтверждения ({tool})',
     zh: 'Claude Code 正在等待你的批准（{tool}）',
     ja: 'Claude Code があなたの承認を待っています（{tool}）',

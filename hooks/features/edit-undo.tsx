@@ -5,7 +5,7 @@ import { isOn, language, notice, t } from '../core'
 import type { Feature, Input, ToolCallInput, ToolCallOutput } from '../core'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: { en: 'Undo edits', he: 'ביטול עריכות', es: 'Deshacer ediciones', fr: 'Annuler les modifications', ru: 'Отмена правок', zh: '撤销编辑', ja: '編集を元に戻す', pt: 'Desfazer edições', de: 'Änderungen rückgängig', ko: '편집 되돌리기' },
   description: {
     en: 'Saves a version before every edit; /edit-undo restores the last one, /edit-undo list shows the list.',
@@ -21,7 +21,7 @@ const T = {
   },
   commandDesc: {
     en: 'Restores the last file Claude edited (list: shows the list)',
-    he: 'משחזר את הקובץ האחרון שה-Claude ערך (list: מציג את הרשימה)',
+    he: 'משחזר את הקובץ האחרון ש-Claude ערך (list: מציג את הרשימה)',
     es: 'Restaura el último archivo que editó Claude (list: muestra la lista)',
     fr: 'Restaure le dernier fichier modifié par Claude (list : affiche la liste)',
     ru: 'Восстанавливает последний файл, изменённый Claude (list: показывает список)',
@@ -33,15 +33,15 @@ const T = {
   },
   off: {
     en: 'Undo edits is turned off in the Toolkitty pane.',
-    he: 'ביטול עריכות כבוי בלוח ה-Toolkitty.',
+    he: 'ביטול עריכות כבוי בלוח /toolkitty.',
     es: 'Deshacer ediciones está desactivado en el panel de Toolkitty.',
-    fr: "Annuler les modifications est désactivé dans le panneau Toolkitty.",
+    fr: "« Annuler les modifications » est désactivé dans le panneau Toolkitty.",
     ru: 'Отмена правок отключена в панели Toolkitty.',
     zh: '撤销编辑已在 Toolkitty 面板中关闭。',
-    ja: '「編集を元に戻す」は Toolkitty パネルでオフになっています。',
+    ja: '「編集を元に戻す」は Toolkitty ペインでオフになっています。',
     pt: 'Desfazer edições está desativado no painel do Toolkitty.',
-    de: '„Änderungen rückgängig“ ist im Toolkitty-Bereich ausgeschaltet.',
-    ko: '편집 되돌리기가 Toolkitty 패널에서 꺼져 있습니다.',
+    de: '„Änderungen rückgängig“ ist im Toolkitty-Panel ausgeschaltet.',
+    ko: '편집 되돌리기가 Toolkitty 창에서 꺼져 있습니다.',
   },
   nothing: {
     en: 'No edits to restore.',
@@ -62,7 +62,7 @@ const T = {
     fr: 'La restauration a échoué : {path}',
     ru: 'Не удалось восстановить: {path}',
     zh: '恢复失败：{path}',
-    ja: '復元に失敗しました: {path}',
+    ja: '復元に失敗しました：{path}',
     pt: 'Falha ao restaurar: {path}',
     de: 'Wiederherstellung fehlgeschlagen: {path}',
     ko: '복원 실패: {path}',
@@ -74,7 +74,7 @@ const T = {
     fr: 'Restauré : {path}',
     ru: 'Восстановлено: {path}',
     zh: '已恢复：{path}',
-    ja: '復元しました: {path}',
+    ja: '復元しました：{path}',
     pt: 'Restaurado: {path}',
     de: 'Wiederhergestellt: {path}',
     ko: '복원됨: {path}',

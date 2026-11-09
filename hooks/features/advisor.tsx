@@ -20,19 +20,19 @@ import type { Chip, Level } from '../ui'
  */
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: { en: 'Smart Advisor', he: 'יועץ חכם', es: 'Asesor inteligente', fr: 'Conseiller intelligent', ru: 'Умный советник', zh: '智能顾问', ja: 'スマートアドバイザー', pt: 'Consultor Inteligente', de: 'Smart-Berater', ko: '스마트 어드바이저' },
   description: {
     en: 'The band headline and a few recommendations, worked out from what the other features see. No model calls.',
     he: 'הכותרת של הרצועה ומספר המלצות, שמחושבות ממה שהשכלולים האחרים רואים. בלי קריאות למודל.',
-    es: 'El titular de la banda y unas pocas recomendaciones, deducidas de lo que ven las demás funciones. Sin llamadas al modelo.',
+    es: 'El titular de la barra y unas pocas recomendaciones, deducidas de lo que ven las demás funciones. Sin llamadas al modelo.',
     fr: 'Le titre de la bande et quelques recommandations, déduits de ce que voient les autres fonctions. Aucun appel au modèle.',
     ru: 'Заголовок панели и несколько рекомендаций, выведенных из данных других функций. Без обращений к модели.',
     zh: '横幅标题和几条建议，根据其他功能观察到的信息得出。不调用模型。',
     ja: 'バンドの見出しといくつかの提案。他の機能が見ている情報から導き出します。モデル呼び出しはありません。',
     pt: 'O título da faixa e algumas recomendações, calculados a partir do que os outros recursos observam. Sem chamadas ao modelo.',
     de: 'Die Schlagzeile des Bands und einige Empfehlungen, abgeleitet aus dem, was die anderen Funktionen sehen. Keine Modellaufrufe.',
-    ko: '밴드 제목과 몇 가지 권장 사항을 다른 기능이 관찰한 내용으로 계산합니다. 모델 호출은 없습니다.',
+    ko: '다른 기능들이 관찰한 내용을 바탕으로 밴드 헤드라인과 몇 가지 권장 사항을 만듭니다. 모델 호출은 없습니다.',
   },
   commandDesc: {
     en: 'Open the Smart Advisor: what needs attention and what to do about it',
@@ -41,16 +41,16 @@ const T = {
     fr: 'Ouvre le conseiller intelligent : ce qui demande de l’attention et quoi faire',
     ru: 'Открыть умного советника: что требует внимания и что делать',
     zh: '打开智能顾问：哪些事需要关注，以及该怎么做',
-    ja: 'スマートアドバイザーを開きます: 注意が必要なことと対処法',
+    ja: 'スマートアドバイザーを開きます：注意が必要なことと対処法',
     pt: 'Abre o Consultor Inteligente: o que precisa de atenção e o que fazer',
     de: 'Öffnet den Smart-Berater: was Aufmerksamkeit braucht und was zu tun ist',
     ko: '스마트 어드바이저를 엽니다: 주의가 필요한 항목과 대처 방법',
   },
   off: {
     en: 'The Smart Advisor is off. Turn it on in the /toolkitty pane.',
-    he: 'היועץ החכם כבוי. הפעילו אותו בחלונית /toolkitty.',
+    he: 'היועץ החכם כבוי. הפעל אותו בלוח /toolkitty.',
     es: 'El asesor inteligente está desactivado. Actívalo en el panel /toolkitty.',
-    fr: 'Le conseiller intelligent est désactivé. Activez-le dans le panneau /toolkitty.',
+    fr: 'Le conseiller intelligent est désactivé. Active-le dans le panneau /toolkitty.',
     ru: 'Умный советник отключён. Включите его в панели /toolkitty.',
     zh: '智能顾问已关闭。请在 /toolkitty 面板中开启。',
     ja: 'スマートアドバイザーはオフです。/toolkitty ペインでオンにしてください。',
@@ -90,12 +90,12 @@ const T = {
   ignoreToday: { en: 'Ignore for today', he: 'התעלם להיום', es: 'Ignorar por hoy', fr: 'Ignorer pour aujourd’hui', ru: 'Игнорировать сегодня', zh: '今天忽略', ja: '今日は無視', pt: 'Ignorar por hoje', de: 'Für heute ignorieren', ko: '오늘은 무시' },
   ignoredRow: {
     en: 'Ignored for 30 min: {title}',
-    he: 'מתעלמים למשך 30 דקות: {title}',
+    he: 'מתעלם ל-30 דקות: {title}',
     es: 'Ignorado 30 min: {title}',
     fr: 'Ignoré 30 min : {title}',
     ru: 'Игнорируется 30 мин: {title}',
     zh: '已忽略 30 分钟：{title}',
-    ja: '30分間無視しました: {title}',
+    ja: '30分間無視しました：{title}',
     pt: 'Ignorado por 30 min: {title}',
     de: '30 Min. ignoriert: {title}',
     ko: '30분간 무시함: {title}',
@@ -103,10 +103,10 @@ const T = {
   openPane: { en: 'Open the Advisor', he: 'פתח את היועץ', es: 'Abrir el asesor', fr: 'Ouvrir le conseiller', ru: 'Открыть советник', zh: '打开顾问', ja: 'アドバイザーを開く', pt: 'Abrir o Consultor', de: 'Berater öffnen', ko: '어드바이저 열기' },
 
   // Headline states (the word in the pane header).
-  stateError: { en: 'failing', he: 'כשלים', es: 'con fallos', fr: 'en échec', ru: 'сбои', zh: '失败', ja: '失敗', pt: 'falhando', de: 'Fehler', ko: '실패' },
+  stateError: { en: 'failing', he: 'נכשל', es: 'con fallos', fr: 'en échec', ru: 'сбои', zh: '失败', ja: '失敗', pt: 'falhando', de: 'Fehler', ko: '실패' },
   stateSecurity: { en: 'blocked', he: 'נחסם', es: 'bloqueado', fr: 'bloqué', ru: 'заблокировано', zh: '已拦截', ja: 'ブロック', pt: 'bloqueado', de: 'blockiert', ko: '차단됨' },
   stateWaiting: { en: 'waiting', he: 'ממתין', es: 'esperando', fr: 'en attente', ru: 'ожидание', zh: '等待中', ja: '待機中', pt: 'aguardando', de: 'wartet', ko: '대기' },
-  stateResource: { en: 'running low', he: 'משאבים אוזלים', es: 'recursos bajos', fr: 'ressources basses', ru: 'ресурсы на исходе', zh: '即将不足', ja: '残りわずか', pt: 'acabando', de: 'knapp', ko: '부족' },
+  stateResource: { en: 'running low', he: 'משאבים אוזלים', es: 'recursos bajos', fr: 'faible', ru: 'на исходе', zh: '即将不足', ja: '残りわずか', pt: 'acabando', de: 'knapp', ko: '부족' },
   stateWorking: { en: 'working', he: 'עובד', es: 'trabajando', fr: 'au travail', ru: 'работает', zh: '工作中', ja: '作業中', pt: 'trabalhando', de: 'aktiv', ko: '작업 중' },
   stateDone: { en: 'done', he: 'הסתיים', es: 'terminado', fr: 'terminé', ru: 'готово', zh: '完成', ja: '完了', pt: 'concluído', de: 'fertig', ko: '완료' },
   stateReady: { en: 'ready', he: 'מוכן', es: 'listo', fr: 'prêt', ru: 'готов', zh: '就绪', ja: '準備完了', pt: 'pronto', de: 'bereit', ko: '준비됨' },
@@ -114,7 +114,7 @@ const T = {
   // Headline chip texts.
   headError: { en: '🔴 {n} repeated failures', he: '🔴 {n} כשלים חוזרים', es: '🔴 {n} fallos repetidos', fr: '🔴 {n} échecs répétés', ru: '🔴 повторных сбоев: {n}', zh: '🔴 {n} 次重复失败', ja: '🔴 {n} 回の連続失敗', pt: '🔴 {n} falhas repetidas', de: '🔴 {n} Fehler in Folge', ko: '🔴 반복 실패 {n}회' },
   headLoop: { en: '🔴 looping', he: '🔴 לולאה', es: '🔴 en bucle', fr: '🔴 boucle', ru: '🔴 зацикливание', zh: '🔴 循环中', ja: '🔴 ループ中', pt: '🔴 em loop', de: '🔴 Schleife', ko: '🔴 루프 중' },
-  headBlocked: { en: '🔴 blocked: {kind}', he: '🔴 נחסם: {kind}', es: '🔴 bloqueado: {kind}', fr: '🔴 bloqué : {kind}', ru: '🔴 заблокировано: {kind}', zh: '🔴 已拦截：{kind}', ja: '🔴 ブロック: {kind}', pt: '🔴 bloqueado: {kind}', de: '🔴 blockiert: {kind}', ko: '🔴 차단됨: {kind}' },
+  headBlocked: { en: '🔴 blocked: {kind}', he: '🔴 נחסם: {kind}', es: '🔴 bloqueado: {kind}', fr: '🔴 bloqué : {kind}', ru: '🔴 заблокировано: {kind}', zh: '🔴 已拦截：{kind}', ja: '🔴 ブロック：{kind}', pt: '🔴 bloqueado: {kind}', de: '🔴 blockiert: {kind}', ko: '🔴 차단됨: {kind}' },
   headWaiting: { en: '🟡 approval needed', he: '🟡 נדרש אישור', es: '🟡 se necesita aprobación', fr: '🟡 approbation requise', ru: '🟡 нужно подтверждение', zh: '🟡 需要批准', ja: '🟡 承認が必要', pt: '🟡 aprovação necessária', de: '🟡 Freigabe nötig', ko: '🟡 승인 필요' },
   headResource: { en: '🟠 {what} {pct}%', he: '🟠 {what} {pct}%', es: '🟠 {what} {pct}%', fr: '🟠 {what} {pct} %', ru: '🟠 {what} {pct}%', zh: '🟠 {what} {pct}%', ja: '🟠 {what} {pct}%', pt: '🟠 {what} {pct}%', de: '🟠 {what} {pct}%', ko: '🟠 {what} {pct}%' },
   headResourceBare: { en: '🟠 {what}', he: '🟠 {what}', es: '🟠 {what}', fr: '🟠 {what}', ru: '🟠 {what}', zh: '🟠 {what}', ja: '🟠 {what}', pt: '🟠 {what}', de: '🟠 {what}', ko: '🟠 {what}' },
@@ -131,7 +131,7 @@ const T = {
     de: '✅ fertig · {files} · Tests {tests}',
     ko: '✅ 완료 · {files} · 테스트 {tests}',
   },
-  headReady: { en: '🟢 ready · ctx {n}%', he: '🟢 מוכן · הקשר {n}%', es: '🟢 listo · ctx {n}%', fr: '🟢 prêt · ctx {n} %', ru: '🟢 готов · ctx {n}%', zh: '🟢 就绪 · 上下文 {n}%', ja: '🟢 準備完了 · ctx {n}%', pt: '🟢 pronto · ctx {n}%', de: '🟢 bereit · Ktx {n}%', ko: '🟢 준비됨 · 컨텍스트 {n}%' },
+  headReady: { en: '🟢 ready · ctx {n}%', he: '🟢 מוכן · הקשר {n}%', es: '🟢 listo · ctx {n}%', fr: '🟢 prêt · ctx {n} %', ru: '🟢 готов · ctx {n}%', zh: '🟢 就绪 · 上下文 {n}%', ja: '🟢 準備完了 · ctx {n}%', pt: '🟢 pronto · ctx {n}%', de: '🟢 bereit · Ktx {n}%', ko: '🟢 준비됨 · ctx {n}%' },
   headReadyBare: { en: '🟢 ready', he: '🟢 מוכן', es: '🟢 listo', fr: '🟢 prêt', ru: '🟢 готов', zh: '🟢 就绪', ja: '🟢 準備完了', pt: '🟢 pronto', de: '🟢 bereit', ko: '🟢 준비됨' },
   filesOne: { en: '1 file', he: 'קובץ אחד', es: '1 archivo', fr: '1 fichier', ru: '1 файл', zh: '1 个文件', ja: '1 ファイル', pt: '1 arquivo', de: '1 Datei', ko: '파일 1개' },
   filesMany: { en: '{n} files', he: '{n} קבצים', es: '{n} archivos', fr: '{n} fichiers', ru: 'файлов: {n}', zh: '{n} 个文件', ja: '{n} ファイル', pt: '{n} arquivos', de: '{n} Dateien', ko: '파일 {n}개' },
@@ -173,10 +173,10 @@ const T = {
     de: 'Kontext {ctx}% · {waste} wiederholte Lesevorgänge · {fail} Fehler',
     ko: '컨텍스트 {ctx}% · 중복 읽기 {waste}회 · 실패 {fail}회',
   },
-  paceTitle: { en: 'Usage ahead of pace', he: 'השימוש מקדים את הקצב', es: 'Uso por encima del ritmo', fr: 'Consommation en avance sur le rythme', ru: 'Расход опережает темп', zh: '用量超出节奏', ja: '使用量がペースを超過', pt: 'Uso acima do ritmo', de: 'Verbrauch über dem Plan', ko: '사용량이 페이스를 초과' },
-  signalsBody: { en: 'Signals: {what}', he: 'אותות: {what}', es: 'Señales: {what}', fr: 'Signaux : {what}', ru: 'Сигналы: {what}', zh: '信号：{what}', ja: 'シグナル: {what}', pt: 'Sinais: {what}', de: 'Signale: {what}', ko: '신호: {what}' },
+  paceTitle: { en: 'Usage ahead of pace', he: 'השימוש מקדים את הקצב', es: 'Uso por encima del ritmo', fr: 'Consommation en avance sur le rythme', ru: 'Расход опережает темп', zh: '用量超出节奏', ja: '使用量がペースを超過', pt: 'Uso acima do ritmo', de: 'Verbrauch schneller als geplant', ko: '사용량이 페이스를 초과' },
+  signalsBody: { en: 'Signals: {what}', he: 'אותות: {what}', es: 'Señales: {what}', fr: 'Signaux : {what}', ru: 'Сигналы: {what}', zh: '信号：{what}', ja: 'シグナル：{what}', pt: 'Sinais: {what}', de: 'Signale: {what}', ko: '신호: {what}' },
   loopTitle: { en: 'Claude is looping', he: 'Claude תקוע בלולאה', es: 'Claude está en bucle', fr: 'Claude tourne en boucle', ru: 'Claude зациклился', zh: 'Claude 陷入了循环', ja: 'Claude がループしています', pt: 'O Claude está em loop', de: 'Claude dreht sich im Kreis', ko: 'Claude가 루프에 빠졌습니다' },
-  loopBody: { en: 'Loop signal: {what}', he: 'אות לולאה: {what}', es: 'Señal de bucle: {what}', fr: 'Signal de boucle : {what}', ru: 'Сигнал цикла: {what}', zh: '循环信号：{what}', ja: 'ループのシグナル: {what}', pt: 'Sinal de loop: {what}', de: 'Schleifensignal: {what}', ko: '루프 신호: {what}' },
+  loopBody: { en: 'Loop signal: {what}', he: 'אות לולאה: {what}', es: 'Señal de bucle: {what}', fr: 'Signal de boucle : {what}', ru: 'Сигнал цикла: {what}', zh: '循环信号：{what}', ja: 'ループのシグナル：{what}', pt: 'Sinal de loop: {what}', de: 'Schleifensignal: {what}', ko: '루프 신호: {what}' },
   dupsTitle: { en: 'Duplicate reads', he: 'קריאות כפולות', es: 'Lecturas duplicadas', fr: 'Lectures en double', ru: 'Повторные чтения', zh: '重复读取', ja: '重複読み取り', pt: 'Leituras duplicadas', de: 'Doppelte Lesevorgänge', ko: '중복 읽기' },
   dupsBody: {
     en: '{n} repeated reads in this session',
@@ -193,16 +193,16 @@ const T = {
   cacheTitle: {
     en: 'Cold cache: the next send re-reads everything',
     he: 'המטמון קר: השליחה הבאה תקרא הכול מחדש',
-    es: 'Caché frío: el próximo envío vuelve a leerlo todo',
+    es: 'Caché fría: el próximo envío vuelve a leerlo todo',
     fr: 'Cache froid : le prochain envoi relit tout',
     ru: 'Кэш остыл: следующая отправка перечитает всё',
     zh: '缓存已冷：下次发送会重新读取全部内容',
-    ja: 'キャッシュが冷えています: 次の送信ですべて再読み込みされます',
+    ja: 'キャッシュ切れ：次の送信ですべて再読み込みされます',
     pt: 'Cache frio: o próximo envio relê tudo',
     de: 'Cache kalt: Beim nächsten Senden wird alles neu gelesen',
     ko: '캐시가 식었습니다: 다음 전송 때 모든 것을 다시 읽습니다',
   },
-  cacheBody: { en: 'cache cold · context {ctx}%', he: 'מטמון קר · הקשר {ctx}%', es: 'caché frío · contexto {ctx}%', fr: 'cache froid · contexte {ctx} %', ru: 'кэш остыл · контекст {ctx}%', zh: '缓存已冷 · 上下文 {ctx}%', ja: 'キャッシュ冷却 · コンテキスト {ctx}%', pt: 'cache frio · contexto {ctx}%', de: 'Cache kalt · Kontext {ctx}%', ko: '캐시 식음 · 컨텍스트 {ctx}%' },
+  cacheBody: { en: 'cache cold · context {ctx}%', he: 'מטמון קר · הקשר {ctx}%', es: 'caché fría · contexto {ctx}%', fr: 'cache froid · contexte {ctx} %', ru: 'кэш остыл · контекст {ctx}%', zh: '缓存已冷 · 上下文 {ctx}%', ja: 'キャッシュ切れ · コンテキスト {ctx}%', pt: 'cache frio · contexto {ctx}%', de: 'Cache kalt · Kontext {ctx}%', ko: '캐시 식음 · 컨텍스트 {ctx}%' },
   guardTitle: { en: 'A guard blocked something', he: 'מנגנון הגנה חסם משהו', es: 'Una protección bloqueó algo', fr: 'Une protection a bloqué quelque chose', ru: 'Защита что-то заблокировала', zh: '有防护拦截了某项操作', ja: 'ガードが何かをブロックしました', pt: 'Uma proteção bloqueou algo', de: 'Ein Guard hat etwas blockiert', ko: '가드가 무언가를 차단했습니다' },
   guardBody: { en: '{kind} · {what}', he: '{kind} · {what}', es: '{kind} · {what}', fr: '{kind} · {what}', ru: '{kind} · {what}', zh: '{kind} · {what}', ja: '{kind} · {what}', pt: '{kind} · {what}', de: '{kind} · {what}', ko: '{kind} · {what}' },
   agentsTitle: {
@@ -217,15 +217,15 @@ const T = {
     de: 'Anfragen von Subagenten wurden abgelehnt',
     ko: '서브에이전트 요청이 거부되었습니다',
   },
-  waitTitle: { en: 'Claude is waiting for you', he: 'Claude מחכה לך', es: 'Claude te está esperando', fr: 'Claude vous attend', ru: 'Claude ждёт вас', zh: 'Claude 正在等你', ja: 'Claude があなたを待っています', pt: 'O Claude está esperando por você', de: 'Claude wartet auf dich', ko: 'Claude가 당신을 기다리고 있습니다' },
+  waitTitle: { en: 'Claude is waiting for you', he: 'Claude מחכה לך', es: 'Claude te está esperando', fr: 'Claude t’attend', ru: 'Claude ждёт вас', zh: 'Claude 正在等你', ja: 'Claude があなたを待っています', pt: 'O Claude está esperando por você', de: 'Claude wartet auf dich', ko: 'Claude가 기다리고 있습니다' },
   waitBody: {
     en: 'waiting for your approval for {time}',
-    he: 'ממתין לאישור שלכם כבר {time}',
+    he: 'ממתין לאישור שלך כבר {time}',
     es: 'esperando tu aprobación desde hace {time}',
-    fr: 'en attente de votre approbation depuis {time}',
+    fr: 'en attente de ton approbation depuis {time}',
     ru: 'ожидает вашего подтверждения уже {time}',
     zh: '已等待你批准 {time}',
-    ja: '承認待ち {time}',
+    ja: '{time} 承認待ち',
     pt: 'aguardando sua aprovação há {time}',
     de: 'wartet seit {time} auf deine Freigabe',
     ko: '{time} 동안 승인 대기 중',
@@ -242,7 +242,7 @@ const ACTION_LABELS: Readonly<Record<string, Localized>> = {
   'open:toolkitty-notices': { en: 'Open notices', he: 'פתח התראות', es: 'Abrir avisos', fr: 'Ouvrir les notifications', ru: 'Открыть уведомления', zh: '打开通知', ja: '通知を開く', pt: 'Abrir avisos', de: 'Hinweise öffnen', ko: '알림 열기' },
   'detail:dup-read-detector': { en: 'See duplicate reads', he: 'ראה קריאות כפולות', es: 'Ver lecturas duplicadas', fr: 'Voir les lectures en double', ru: 'Повторные чтения', zh: '查看重复读取', ja: '重複読み取りを見る', pt: 'Ver leituras duplicadas', de: 'Doppelte Lesevorgänge ansehen', ko: '중복 읽기 보기' },
   'detail:cache-countdown': { en: 'See cache timer', he: 'ראה טיימר מטמון', es: 'Ver temporizador de caché', fr: 'Voir le minuteur du cache', ru: 'Таймер кэша', zh: '查看缓存计时器', ja: 'キャッシュタイマーを見る', pt: 'Ver timer do cache', de: 'Cache-Timer ansehen', ko: '캐시 타이머 보기' },
-  'open:incidents': { en: 'Open incidents', he: 'פתח אירועים', es: 'Abrir incidentes', fr: 'Ouvrir les incidents', ru: 'Открыть инциденты', zh: '打开事件记录', ja: 'インシデントを開く', pt: 'Abrir incidentes', de: 'Vorfälle öffnen', ko: '인시던트 열기' },
+  'open:incidents': { en: 'Open incidents', he: 'פתח אירועים', es: 'Abrir incidentes', fr: 'Ouvrir les incidents', ru: 'Открыть инциденты', zh: '打开事件记录', ja: 'インシデントを開く', pt: 'Abrir incidentes', de: 'Vorfälle öffnen', ko: '막아낸 사고 열기' },
   'detail:subagent-guard': { en: 'See subagents', he: 'ראה סוכני משנה', es: 'Ver subagentes', fr: 'Voir les sous-agents', ru: 'Субагенты', zh: '查看子代理', ja: 'サブエージェントを見る', pt: 'Ver subagentes', de: 'Subagenten ansehen', ko: '서브에이전트 보기' },
 }
 
@@ -250,9 +250,9 @@ const ACTION_LABELS: Readonly<Record<string, Localized>> = {
 const NOTICE_TEXTS: Readonly<Record<string, Localized>> = {
   handoffTip: {
     en: 'Run /handoff to save a summary, then continue in a fresh session.',
-    he: 'הריצו /handoff כדי לשמור סיכום, ואז המשיכו בסשן חדש.',
+    he: 'הרץ /handoff כדי לשמור סיכום, ואז המשך בסשן חדש.',
     es: 'Ejecuta /handoff para guardar un resumen y continúa en una sesión nueva.',
-    fr: 'Lancez /handoff pour enregistrer un résumé, puis continuez dans une nouvelle session.',
+    fr: 'Lance /handoff pour enregistrer un résumé, puis continue dans une nouvelle session.',
     ru: 'Выполните /handoff, чтобы сохранить сводку, и продолжите в новой сессии.',
     zh: '运行 /handoff 保存摘要，然后在新会话中继续。',
     ja: '/handoff を実行して要約を保存し、新しいセッションで続けましょう。',
@@ -264,7 +264,7 @@ const NOTICE_TEXTS: Readonly<Record<string, Localized>> = {
 
 /** Titles of the panes an `open:` action can open (anything else is titled Toolkitty). */
 const PANE_TITLES: Readonly<Record<string, Localized>> = {
-  incidents: { en: 'Disasters prevented', he: 'אסונות שנמנעו', es: 'Desastres evitados', fr: 'Désastres évités', ru: 'Предотвращённые катастрофы', zh: '已避免的灾难', ja: '防いだ災害', pt: 'Desastres evitados', de: 'Verhinderte Katastrophen', ko: '막아낸 사고' },
+  incidents: { en: 'Disasters prevented', he: 'אסונות שנמנעו', es: 'Desastres evitados', fr: 'Désastres évités', ru: 'Предотвращённые катастрофы', zh: '已避免的灾难', ja: '防いだ事故', pt: 'Desastres evitados', de: 'Verhinderte Katastrophen', ko: '막아낸 사고' },
   'toolkitty-notices': { en: 'Notices', he: 'התראות', es: 'Avisos', fr: 'Notifications', ru: 'Уведомления', zh: '通知', ja: '通知', pt: 'Avisos', de: 'Hinweise', ko: '알림' },
 }
 

@@ -8,16 +8,16 @@ import { BUILTIN_THEMES } from '../themes'
 import type { Theme } from '../themes'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: { en: 'Aurora backdrop', he: 'רקע אורורה', es: 'Fondo aurora', fr: 'Fond aurore', ru: 'Фон «Аврора»', zh: '极光背景', ja: 'オーロラ背景', pt: 'Fundo de aurora', de: 'Aurora-Hintergrund', ko: '오로라 배경' },
   description: {
     en: 'Desktop only: a slowly drifting aurora behind the window. Blue and teal when idle, violet while working, amber past 70% context, red past 90%.',
     he: 'שולחן עבודה בלבד: זוהר צפוני שנע לאט ברקע החלון. כחול-טורקיז במנוחה, סגול בעבודה, ענבר מעל 70% הקשר, אדום מעל 90%.',
-    es: 'Solo escritorio: una aurora que se desplaza despacio tras la ventana. Azul y turquesa en reposo, violeta al trabajar, ámbar sobre 70% de contexto, rojo sobre 90%.',
+    es: 'Solo escritorio: una aurora que se desplaza despacio tras la ventana. Azul y turquesa en reposo, violeta al trabajar, ámbar por encima del 70% de contexto, rojo por encima del 90%.',
     fr: 'Bureau uniquement : une aurore qui dérive lentement derrière la fenêtre. Bleu et turquoise au repos, violet au travail, ambre au-delà de 70 % de contexte, rouge au-delà de 90 %.',
     ru: 'Только для десктопа: медленно плывущее северное сияние за окном. Сине-бирюзовое в покое, фиолетовое в работе, янтарное при контексте выше 70%, красное выше 90%.',
     zh: '仅限桌面版：窗口后方缓缓飘动的极光。空闲时为蓝色和青色，工作时为紫色，上下文超过 70% 为琥珀色，超过 90% 为红色。',
-    ja: 'デスクトップ専用: ウィンドウの背後でゆっくり漂うオーロラ。待機中は青とティール、作業中は紫、コンテキストが70%を超えると琥珀色、90%を超えると赤になります。',
+    ja: 'デスクトップ専用：ウィンドウの背後でゆっくり漂うオーロラ。待機中は青とティール、作業中は紫、コンテキストが70%を超えると琥珀色、90%を超えると赤になります。',
     pt: 'Somente no desktop: uma aurora que se move devagar atrás da janela. Azul e verde-azulado em repouso, violeta enquanto trabalha, âmbar acima de 70% de contexto, vermelho acima de 90%.',
     de: 'Nur Desktop: ein langsam driftendes Polarlicht hinter dem Fenster. Blau und Türkis im Leerlauf, Violett bei der Arbeit, Bernstein ab 70 % Kontext, Rot ab 90 %.',
     ko: '데스크톱 전용: 창 뒤에서 천천히 흐르는 오로라. 유휴 시 파랑·청록, 작업 중 보라, 컨텍스트 70% 초과 시 호박색, 90% 초과 시 빨강입니다.',
@@ -26,7 +26,7 @@ const T = {
     en: 'The feature is off; turn it on in the /toolkitty pane',
     he: 'השכלול כבוי; הפעל אותו בלוח /toolkitty',
     es: 'La función está desactivada; actívala en el panel /toolkitty',
-    fr: 'La fonctionnalité est désactivée ; activez-la dans le panneau /toolkitty',
+    fr: 'La fonctionnalité est désactivée ; active-la dans le panneau /toolkitty',
     ru: 'Функция отключена; включите её в панели /toolkitty',
     zh: '该功能已关闭；请在 /toolkitty 面板中开启',
     ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
@@ -46,8 +46,8 @@ const T = {
     de: 'Schaltet den Aurora-Hintergrund für diese Session an oder aus (nur Desktop)',
     ko: '이 세션의 오로라 배경을 켜거나 끕니다(데스크톱 전용)',
   },
-  notDrawn: { en: 'Aurora: the surface did not draw the backdrop ({reason}).', he: 'Aurora: המשטח לא צייר את הרקע ({reason}).', es: 'Aurora: la superficie no dibujó el fondo ({reason}).', fr: 'Aurora : la surface n’a pas dessiné l’arrière-plan ({reason}).', ru: 'Aurora: поверхность не нарисовала фон ({reason}).', zh: '极光：当前界面未绘制背景（{reason}）。', ja: 'オーロラ: この画面では背景が描画されませんでした（{reason}）。', pt: 'Aurora: a interface não desenhou o fundo ({reason}).', de: 'Aurora: Die Oberfläche hat den Hintergrund nicht gezeichnet ({reason}).', ko: '오로라: 이 화면에서 배경을 그리지 못했습니다({reason}).' },
-  lastResult: { en: 'last attempt: {result}', he: 'ניסיון אחרון: {result}', es: 'último intento: {result}', fr: 'dernière tentative : {result}', ru: 'последняя попытка: {result}', zh: '上次尝试：{result}', ja: '前回の試行: {result}', pt: 'última tentativa: {result}', de: 'letzter Versuch: {result}', ko: '마지막 시도: {result}' },
+  notDrawn: { en: 'Aurora: the surface did not draw the backdrop ({reason}).', he: 'אורורה: המשטח לא צייר את הרקע ({reason}).', es: 'Aurora: la superficie no dibujó el fondo ({reason}).', fr: 'Aurore : la surface n’a pas dessiné l’arrière-plan ({reason}).', ru: '«Аврора»: поверхность не нарисовала фон ({reason}).', zh: '极光：当前界面未绘制背景（{reason}）。', ja: 'オーロラ：この画面では背景が描画されませんでした（{reason}）。', pt: 'Aurora: a interface não desenhou o fundo ({reason}).', de: 'Aurora: Die Oberfläche hat den Hintergrund nicht gezeichnet ({reason}).', ko: '오로라: 이 화면에서 배경을 그리지 못했습니다({reason}).' },
+  lastResult: { en: 'last attempt: {result}', he: 'ניסיון אחרון: {result}', es: 'último intento: {result}', fr: 'dernière tentative : {result}', ru: 'последняя попытка: {result}', zh: '上次尝试：{result}', ja: '前回の試行：{result}', pt: 'última tentativa: {result}', de: 'letzter Versuch: {result}', ko: '마지막 시도: {result}' },
   desktopOnly: {
     en: 'The aurora backdrop works in the desktop app only; this terminal cannot draw it.',
     he: 'רקע האורורה עובד באפליקציית שולחן העבודה בלבד; הטרמינל הזה לא יכול לצייר אותו.',

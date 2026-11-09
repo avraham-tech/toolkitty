@@ -21,14 +21,14 @@ const T = {
   },
   description: {
     en: 'A line above the prompt box: current turn time, actions in it, and total actions in the session.',
-    he: 'פס מעל תיבת הכתיבה: זמן התור הנוכחי, פעולות בו וסה"כ פעולות בסשן.',
+    he: 'פס מעל תיבת הכתיבה: זמן התור הנוכחי, פעולות בו וסה״כ פעולות בסשן.',
     es: 'Una línea sobre el cuadro de texto: tiempo del turno actual, acciones en él y total de acciones de la sesión.',
     fr: 'Une ligne au-dessus de la zone de saisie : durée du tour en cours, actions dans ce tour et total des actions de la session.',
     ru: 'Строка над полем ввода: время текущего хода, число действий в нём и общее число действий в сессии.',
     zh: '输入框上方的一行：当前轮次用时、其中的操作数以及会话总操作数。',
     ja: 'プロンプト欄の上の 1 行：現在のターンの経過時間、その中のアクション数、セッション全体のアクション数。',
     pt: 'Uma linha acima da caixa de prompt: tempo do turno atual, ações nele e total de ações na sessão.',
-    de: 'Eine Zeile über dem Eingabefeld: Dauer der aktuellen Runde, Aktionen darin und Aktionen insgesamt in der Sitzung.',
+    de: 'Eine Zeile über dem Eingabefeld: Dauer des aktuellen Durchgangs, Aktionen darin und Aktionen insgesamt in der Session.',
     ko: '프롬프트 입력창 위의 한 줄: 현재 턴 시간, 그 안의 작업 수, 세션 전체 작업 수.',
   },
   working: {
@@ -76,11 +76,11 @@ const T = {
     zh: '会话共 {n}',
     ja: 'セッション合計 {n}',
     pt: 'total da sessão {n}',
-    de: 'Sitzung gesamt {n}',
+    de: 'Session gesamt {n}',
     ko: '세션 합계 {n}',
   },
-  dStarted: { en: 'started {t} ago', he: 'התחילה לפני {t}', es: 'empezó hace {t}', fr: 'commencée il y a {t}', ru: 'начато {t} назад', zh: '{t} 前开始', ja: '{t} 前に開始', pt: 'iniciada há {t}', de: 'vor {t} gestartet', ko: '{t} 전 시작' },
-  dNoneHint: { en: 'Send a prompt and the clock for the turn, its actions and the session total start here.', he: 'שלחו בקשה והשעון של התור, הפעולות שלו וסה"כ הסשן יתחילו כאן.', es: 'Envía un mensaje y aquí empiezan el reloj del turno, sus acciones y el total de la sesión.', fr: 'Envoyez un message : le chrono du tour, ses actions et le total de la session démarrent ici.', ru: 'Отправьте запрос, и здесь начнут отсчёт время хода, его действия и итог сессии.', zh: '发送提示后，本轮的计时、操作数和会话总数会从这里开始显示。', ja: 'プロンプトを送ると、ターンの時計、アクション数、セッション合計がここに表示されます。', pt: 'Envie um prompt e o relógio do turno, as ações e o total da sessão começam aqui.', de: 'Sende einen Prompt, dann starten hier die Uhr der Runde, ihre Aktionen und die Sitzungssumme.', ko: '프롬프트를 보내면 턴 시계, 작업 수, 세션 합계가 여기서 시작됩니다.' },
+  dStarted: { en: 'started {t} ago', he: 'התחילה לפני {t}', es: 'empezó hace {t}', fr: 'commencée il y a {t}', ru: 'начато {t} назад', zh: '{t}前开始', ja: '{t}前に開始', pt: 'iniciada há {t}', de: 'vor {t} gestartet', ko: '{t} 전 시작' },
+  dNoneHint: { en: 'Send a prompt and the clock for the turn, its actions and the session total start here.', he: 'שלח בקשה והשעון של התור, הפעולות שלו וסה״כ הסשן יתחילו כאן.', es: 'Envía un mensaje y aquí empiezan el reloj del turno, sus acciones y el total de la sesión.', fr: 'Envoyez un message : le chrono du tour, ses actions et le total de la session démarrent ici.', ru: 'Отправьте запрос, и здесь начнут отсчёт время хода, его действия и итог сессии.', zh: '发送提示后，本轮的计时、操作数和会话总数会从这里开始显示。', ja: 'プロンプトを送ると、ターンの時計、アクション数、セッション合計がここに表示されます。', pt: 'Envie um prompt e o relógio do turno, as ações e o total da sessão começam aqui.', de: 'Sende einen Prompt, dann starten hier die Uhr des Durchgangs, seine Aktionen und die Session-Summe.', ko: '프롬프트를 보내면 턴 시계, 작업 수, 세션 합계가 여기서 시작됩니다.' },
   dNone: { en: 'No task has run yet.', he: 'עדיין לא רצה משימה.', es: 'Aún no se ha ejecutado ninguna tarea.', fr: 'Aucune tâche n\'a encore été exécutée.', ru: 'Задач ещё не было.', zh: '还没有运行过任务。', ja: 'まだタスクは実行されていません。', pt: 'Nenhuma tarefa foi executada ainda.', de: 'Es ist noch keine Aufgabe gelaufen.', ko: '아직 실행된 작업이 없습니다.' },
 } as const
 

@@ -20,7 +20,7 @@ const T = {
   },
   description: {
     en: 'Runs the test file next to the edited file and reports to the model only on failure (may be slow).',
-    he: 'מריץ את קובץ הבדיקות שליד הקובץ שנערך, ומדווח למודל רק על כשלון (עלול להיות איטי).',
+    he: 'מריץ את קובץ הבדיקות שליד הקובץ שנערך, ומדווח למודל רק על כישלון (עלול להיות איטי).',
     es: 'Ejecuta el archivo de pruebas junto al archivo editado y solo informa al modelo si falla (puede ser lento).',
     fr: 'Exécute le fichier de tests voisin du fichier modifié et ne signale au modèle que les échecs (peut être lent).',
     ru: 'Запускает файл тестов рядом с изменённым файлом и сообщает модели только о сбоях (может быть медленно).',

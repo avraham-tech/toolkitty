@@ -14,7 +14,7 @@ const T = {
     zh: '轮次摘要',
     ja: 'ターンの要約',
     pt: 'Resumo do turno',
-    de: 'Runden-Zusammenfassung',
+    de: 'Durchgangs-Zusammenfassung',
     ko: '턴 요약',
   },
   description: {
@@ -26,7 +26,7 @@ const T = {
     zh: '回答下方的一行简短说明：本轮编辑了多少个文件、执行了多少次操作。',
     ja: '回答の下に出る短い 1 行：このターンで編集したファイル数と実行したアクション数。',
     pt: 'Uma linha curta abaixo da resposta: quantos arquivos foram editados e quantas ações rodaram no turno.',
-    de: 'Eine kurze Zeile unter der Antwort: wie viele Dateien bearbeitet und wie viele Aktionen in der Runde ausgeführt wurden.',
+    de: 'Eine kurze Zeile unter der Antwort: wie viele Dateien bearbeitet und wie viele Aktionen im Durchgang ausgeführt wurden.',
     ko: '답변 아래의 짧은 한 줄: 이번 턴에서 편집한 파일 수와 실행한 작업 수.',
   },
   oneFile: {
@@ -62,7 +62,7 @@ const T = {
     zh: '本轮 1 个操作',
     ja: 'このターンで 1 アクション',
     pt: '1 ação no turno',
-    de: '1 Aktion in der Runde',
+    de: '1 Aktion im Durchgang',
     ko: '이번 턴에 작업 1개',
   },
   calls: {
@@ -74,7 +74,7 @@ const T = {
     zh: '本轮 {n} 个操作',
     ja: 'このターンで {n} アクション',
     pt: '{n} ações no turno',
-    de: '{n} Aktionen in der Runde',
+    de: '{n} Aktionen im Durchgang',
     ko: '이번 턴에 작업 {n}개',
   },
 } as const

@@ -21,13 +21,13 @@ const T = {
   description: {
     en: 'Reminds you if Claude has waited a minute for your approval, and can push to your phone (ntfy.sh) when you are waiting or a long turn is done.',
     he: 'מזכיר לך אם Claude ממתין דקה לאישור שלך, ויכול לשלוח התראה לטלפון (ntfy.sh) כשממתינים או כשתור ארוך הסתיים.',
-    es: 'Te recuerda si Claude lleva un minuto esperando tu aprobación, y puede enviar un aviso al móvil (ntfy.sh) al esperar o al terminar un turno largo.',
+    es: 'Te recuerda si Claude lleva un minuto esperando tu aprobación, y puede enviar un aviso a tu teléfono (ntfy.sh) al esperar o al terminar un turno largo.',
     fr: "Vous rappelle si Claude attend votre approbation depuis une minute, et peut notifier votre téléphone (ntfy.sh) en cas d'attente ou à la fin d'un long tour.",
     ru: 'Напоминает, если Claude минуту ждёт вашего подтверждения, и может присылать push на телефон (ntfy.sh) при ожидании или завершении долгого хода.',
     zh: '当 Claude 等待你批准满一分钟时提醒你；在等待期间或长时间的一轮结束时，还可推送到手机（ntfy.sh）。',
     ja: 'Claude が承認を 1 分待っているときにお知らせし、待機中や長いターンの完了時にスマートフォンへプッシュ通知もできます（ntfy.sh）。',
     pt: 'Avisa se o Claude esperou um minuto pela sua aprovação e pode enviar push ao celular (ntfy.sh) durante a espera ou ao fim de um turno longo.',
-    de: 'Erinnert dich, wenn Claude eine Minute auf deine Freigabe gewartet hat, und kann bei Wartezeit oder nach einer langen Runde einen Push aufs Handy senden (ntfy.sh).',
+    de: 'Erinnert dich, wenn Claude eine Minute auf deine Freigabe gewartet hat, und kann bei Wartezeit oder nach einem langen Durchgang einen Push aufs Handy senden (ntfy.sh).',
     ko: 'Claude가 승인을 1분간 기다리면 알려 주며, 대기 중이거나 긴 턴이 끝났을 때 휴대폰으로 푸시(ntfy.sh)를 보낼 수 있습니다.',
   },
   off: {
@@ -37,10 +37,10 @@ const T = {
     fr: 'Cette fonctionnalité est désactivée ; activez-la dans le panneau /toolkitty',
     ru: 'Функция выключена; включите её на панели /toolkitty',
     zh: '此功能已关闭，请在 /toolkitty 面板中开启',
-    ja: 'この機能はオフです。/toolkitty パネルでオンにしてください',
+    ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
     pt: 'Este recurso está desativado; ative-o no painel /toolkitty',
-    de: 'Diese Funktion ist aus; schalte sie im /toolkitty-Panel ein',
-    ko: '이 기능이 꺼져 있습니다. /toolkitty 패널에서 켜세요',
+    de: 'Diese Funktion ist aus; aktiviere sie im Panel /toolkitty',
+    ko: '이 기능이 꺼져 있습니다. /toolkitty 창에서 켜세요',
   },
   commandDesc: {
     en: 'Sets the ntfy.sh push URL: /push-url <url>, off, or test',
@@ -117,7 +117,7 @@ const T = {
   urlOff: {
     en: 'Push is off; the stored URL was cleared.',
     he: 'ההתראות לטלפון כבויות; הכתובת השמורה נמחקה.',
-    es: 'Los avisos al móvil están desactivados; se borró la URL guardada.',
+    es: 'Los avisos al teléfono están desactivados; se borró la URL guardada.',
     fr: "Les notifications push sont désactivées ; l'URL enregistrée a été effacée.",
     ru: 'Push выключен; сохранённый URL удалён.',
     zh: '推送已关闭；已清除保存的 URL。',
@@ -148,7 +148,7 @@ const T = {
     ja: 'プッシュの送信先は {host} です（トピックは非表示）。/push-url off で消去できます。',
     pt: 'O push vai para {host} (tópico oculto). /push-url off o apaga.',
     de: 'Push geht an {host} (Topic verborgen). /push-url off löscht es.',
-    ko: '푸시는 {host}로 전송됩니다(토픽 숨김). /push-url off로 지울 수 있습니다.',
+    ko: '푸시 전송 대상: {host}(토픽 숨김). /push-url off로 지울 수 있습니다.',
   },
   urlBad: {
     en: 'That is not an http(s) URL. Example: /push-url https://ntfy.sh/my-topic',
@@ -189,7 +189,7 @@ const T = {
   pushFailed: {
     en: 'The push to your phone failed (check /push-url and your network).',
     he: 'השליחה לטלפון נכשלה (בדוק את ‎/push-url והרשת).',
-    es: 'El aviso al móvil falló (revisa /push-url y la red).',
+    es: 'El aviso al teléfono falló (revisa /push-url y la red).',
     fr: "La notification vers le téléphone a échoué (vérifiez /push-url et le réseau).",
     ru: 'Не удалось отправить push на телефон (проверьте /push-url и сеть).',
     zh: '推送到手机失败（请检查 /push-url 和网络）。',

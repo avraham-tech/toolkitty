@@ -101,11 +101,11 @@ export const groups: FeatureGroup[] = [
     features: [advisor, taskPulse, costMeter, modelIndicator, errorCounter, turnSummary, filesTouched, bashLog, turnHistory, efficiencyScore],
   },
   {
-    title: { en: 'Alerts', he: 'התרעות', es: 'Alertas', fr: 'Alertes', ru: 'Уведомления', zh: '提醒', ja: 'アラート', pt: 'Alertas', de: 'Hinweise', ko: '알림' },
+    title: { en: 'Alerts', he: 'התראות', es: 'Alertas', fr: 'Alertes', ru: 'Уведомления', zh: '提醒', ja: 'アラート', pt: 'Alertas', de: 'Warnungen', ko: '알림' },
     features: [doneNotify, longTurnToast, breakTimer],
   },
   {
-    title: { en: 'Guardrails', he: 'שומרי סף', es: 'Barreras de seguridad', fr: 'Garde-fous', ru: 'Защита', zh: '防护', ja: 'ガードレール', pt: 'Proteções', de: 'Schutzgeländer', ko: '가드레일' },
+    title: { en: 'Guardrails', he: 'שומרי סף', es: 'Barreras de seguridad', fr: 'Garde-fous', ru: 'Защита', zh: '防护', ja: 'ガードレール', pt: 'Proteções', de: 'Leitplanken', ko: '가드레일' },
     features: [protectSecrets, dangerousCommands, branchLock, secretMask, safetyReceipt],
   },
   {
@@ -117,11 +117,11 @@ export const groups: FeatureGroup[] = [
     features: [standup, commitMsg, contextInfo, promptSnippets, gitContext, sessionMemory, pinnedFiles, promptHistory, promptEnhancer],
   },
   {
-    title: { en: 'Panes & comfort', he: 'פאנלים ונוחות', es: 'Paneles y comodidad', fr: 'Panneaux et confort', ru: 'Панели и удобство', zh: '面板与便利', ja: 'ペインと快適さ', pt: 'Painéis e conforto', de: 'Panels & Komfort', ko: '패널과 편의' },
+    title: { en: 'Panes & comfort', he: 'חלוניות ונוחות', es: 'Paneles y comodidad', fr: 'Panneaux et confort', ru: 'Панели и удобство', zh: '面板与便利', ja: 'ペインと快適さ', pt: 'Painéis e conforto', de: 'Panels & Komfort', ko: '창과 편의' },
     features: [explainError, tldr, focusMode, taskBoard, agentsMonitor, notes, uncommittedReminder, dailyTotal, copyLast],
   },
   {
-    title: { en: 'Quotas & cache', he: 'מכסות ו-cache', es: 'Cuotas y caché', fr: 'Quotas et cache', ru: 'Лимиты и кэш', zh: '配额与缓存', ja: 'クォータとキャッシュ', pt: 'Cotas e cache', de: 'Kontingente & Cache', ko: '할당량과 캐시' },
+    title: { en: 'Quotas & cache', he: 'מכסות ומטמון', es: 'Cuotas y caché', fr: 'Quotas et cache', ru: 'Лимиты и кэш', zh: '配额与缓存', ja: 'クォータとキャッシュ', pt: 'Cotas e cache', de: 'Kontingente & Cache', ko: '할당량과 캐시' },
     features: [planPace, cacheCountdown, autoContinue, subagentGuard, idleHandoff, budgetGuard, savings],
   },
   {
@@ -129,7 +129,7 @@ export const groups: FeatureGroup[] = [
     features: [handoff, contextDoctor, dupReadDetector, outputArchive, correctionCapture],
   },
   {
-    title: { en: 'More guardrails', he: 'עוד שומרי סף', es: 'Más barreras', fr: 'Autres garde-fous', ru: 'Ещё защита', zh: '更多防护', ja: 'その他のガード', pt: 'Mais proteções', de: 'Weitere Schutzmaßnahmen', ko: '추가 가드' },
+    title: { en: 'More guardrails', he: 'עוד שומרי סף', es: 'Más barreras', fr: 'Autres garde-fous', ru: 'Ещё защита', zh: '更多防护', ja: 'その他のガード', pt: 'Mais proteções', de: 'Weitere Leitplanken', ko: '추가 가드레일' },
     features: [errorDetective, loopDetective, scopeGuard, claimCheck, pastedSecretScan, mergeGate, injectionTripwire, blastRadius, incidents],
   },
   {
@@ -137,7 +137,7 @@ export const groups: FeatureGroup[] = [
     features: [goalTracker, liveTicker, waitingAlert, agentProfiler, decisionLedger, diffReview, sessionFinder, mondayReport, missionControl, timeMachine, sessionReplay, taskEta],
   },
   {
-    title: { en: 'Eye candy', he: 'ויזואלי', es: 'Visual', fr: 'Visuel', ru: 'Визуальное', zh: '视觉效果', ja: 'ビジュアル', pt: 'Visual', de: 'Optik', ko: '비주얼' },
+    title: { en: 'Eye candy', he: 'אפקטים ויזואליים', es: 'Visual', fr: 'Visuel', ru: 'Визуальное', zh: '视觉效果', ja: 'ビジュアル', pt: 'Visual', de: 'Optik', ko: '비주얼' },
     features: [buddy, turnReceipt, weekHeatmap, auroraBackdrop, contextAquarium, themes, sounds, achievements, shareCards],
   },
   {

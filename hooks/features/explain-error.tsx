@@ -3,7 +3,7 @@ import type { EngineInterface, On } from 'claude-code'
 import type { Feature, Input } from '../core'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: { en: 'Explain error', he: 'הסבר שגיאה', es: 'Explicar error', fr: "Expliquer l'erreur", ru: 'Объяснение ошибки', zh: '解释错误', ja: 'エラーを説明', pt: 'Explicar erro', de: 'Fehler erklären', ko: '오류 설명' },
   description: {
     en: 'The /explain command explains the latest error and what to fix.',
@@ -30,23 +30,23 @@ const T = {
     ko: '대화 속 최근 오류를 설명합니다',
   },
   // the language name, in English, used inside the prompt sent to the model
-  promptLang: { en: 'English', he: 'Hebrew', es: 'Spanish', fr: 'French', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', pt: 'Portuguese', de: 'German', ko: 'Korean' },
+  promptLang: { en: 'English', he: 'Hebrew', es: 'Spanish', fr: 'French', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', pt: 'Brazilian Portuguese', de: 'German', ko: 'Korean' },
   off: {
     en: 'The feature is off; turn it on in the /toolkitty pane',
     he: 'השכלול כבוי; הפעל אותו בלוח /toolkitty',
     es: 'La función está desactivada; actívala en el panel /toolkitty',
-    fr: 'La fonction est désactivée ; activez-la dans le panneau /toolkitty',
+    fr: 'La fonctionnalité est désactivée ; active-la dans le panneau /toolkitty',
     ru: 'Функция отключена; включите её в панели /toolkitty',
     zh: '该功能已关闭；请在 /toolkitty 面板中开启',
-    ja: 'この機能はオフです。/toolkitty パネルでオンにしてください',
+    ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
     pt: 'O recurso está desativado; ative-o no painel /toolkitty',
-    de: 'Die Funktion ist aus; schalte sie im /toolkitty-Bereich ein',
-    ko: '이 기능이 꺼져 있습니다. /toolkitty 패널에서 켜세요',
+    de: 'Die Funktion ist aus; aktiviere sie im Panel /toolkitty',
+    ko: '이 기능이 꺼져 있습니다. /toolkitty 창에서 켜세요',
   },
   nothingToFork: {
     en: 'There is no conversation to explain from yet.',
     he: 'אין עדיין שיחה להסביר ממנה.',
-    es: 'Todavía no hay una conversación de la que explicar.',
+    es: 'Todavía no hay ninguna conversación que explicar.',
     fr: "Il n'y a pas encore de conversation à expliquer.",
     ru: 'Пока нет разговора, который можно объяснить.',
     zh: '还没有可供解释的对话。',
@@ -65,13 +65,13 @@ const T = {
     ja: 'モデルから応答がありませんでした（{reason}）。',
     pt: 'Nenhuma resposta foi recebida do modelo ({reason}).',
     de: 'Vom Modell wurde keine Antwort empfangen ({reason}).',
-    ko: '모델에서 응답을 받지 못했습니다 ({reason}).',
+    ko: '모델에서 응답을 받지 못했습니다({reason}).',
   },
   failed: {
     en: 'The explanation failed; try again.',
     he: 'ההסבר נכשל; נסה שוב.',
     es: 'La explicación falló; inténtalo de nuevo.',
-    fr: "L'explication a échoué ; réessayez.",
+    fr: "L’explication a échoué ; réessaie.",
     ru: 'Не удалось получить объяснение; попробуйте ещё раз.',
     zh: '解释失败，请重试。',
     ja: '説明に失敗しました。もう一度お試しください。',

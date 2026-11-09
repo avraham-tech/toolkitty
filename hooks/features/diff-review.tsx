@@ -8,7 +8,7 @@ import { publish, retractAll } from '../signals'
 import { ICONS, emptyState, paneHeader } from '../ui'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: {
     en: 'Diff review',
     he: 'סקירת שינויים',
@@ -47,7 +47,7 @@ const T = {
   },
   off: {
     en: 'Diff review is turned off in the Toolkitty pane.',
-    he: 'סקירת השינויים כבויה בלוח ה-Toolkitty.',
+    he: 'סקירת השינויים כבויה בלוח /toolkitty.',
     es: 'La revisión de cambios está desactivada en el panel de Toolkitty.',
     fr: 'La revue des modifications est désactivée dans le panneau Toolkitty.',
     ru: 'Обзор изменений отключён в панели Toolkitty.',
@@ -57,7 +57,7 @@ const T = {
     de: 'Diff-Review ist im Toolkitty-Panel ausgeschaltet.',
     ko: '변경 검토가 Toolkitty 창에서 꺼져 있습니다.',
   },
-  opened: { en: 'Review pane opened.', he: 'לוח הסקירה נפתח.', es: 'Panel de revisión abierto.', fr: 'Panneau de revue ouvert.', ru: 'Панель обзора открыта.', zh: '已打开审查面板。', ja: 'レビューペインを開きました。', pt: 'Painel de revisão aberto.', de: 'Review-Panel geöffnet.', ko: '검토 창을 열었습니다.' },
+  opened: { en: 'Review pane opened.', he: 'חלונית הסקירה נפתחה.', es: 'Panel de revisión abierto.', fr: 'Panneau de revue ouvert.', ru: 'Панель обзора открыта.', zh: '已打开审查面板。', ja: 'レビューペインを開きました。', pt: 'Painel de revisão aberto.', de: 'Review-Panel geöffnet.', ko: '검토 창을 열었습니다.' },
   paneTitle: { en: 'Review', he: 'סקירה', es: 'Revisión', fr: 'Revue', ru: 'Обзор', zh: '审查', ja: 'レビュー', pt: 'Revisão', de: 'Review', ko: '검토' },
   paneOff: {
     en: 'Diff review is turned off.',
@@ -84,10 +84,10 @@ const T = {
     ko: '마지막 턴에서 검토할 변경 사항이 없습니다.',
   },
   revert: { en: 'revert', he: 'שחזר', es: 'revertir', fr: 'rétablir', ru: 'откатить', zh: '还原', ja: '元に戻す', pt: 'reverter', de: 'zurücksetzen', ko: '되돌리기' },
-  revertAll: { en: 'revert all', he: 'שחזר הכל', es: 'revertir todo', fr: 'tout rétablir', ru: 'откатить всё', zh: '全部还原', ja: 'すべて元に戻す', pt: 'reverter tudo', de: 'alles zurücksetzen', ko: '모두 되돌리기' },
+  revertAll: { en: 'revert all', he: 'שחזר הכול', es: 'revertir todo', fr: 'tout rétablir', ru: 'откатить всё', zh: '全部还原', ja: 'すべて元に戻す', pt: 'reverter tudo', de: 'alles zurücksetzen', ko: '모두 되돌리기' },
   keep: { en: 'keep', he: 'השאר', es: 'conservar', fr: 'garder', ru: 'оставить', zh: '保留', ja: '保持', pt: 'manter', de: 'behalten', ko: '유지' },
   created: { en: 'new', he: 'חדש', es: 'nuevo', fr: 'nouveau', ru: 'новый', zh: '新增', ja: '新規', pt: 'novo', de: 'neu', ko: '신규' },
-  reverted: { en: 'Reverted: {name}', he: 'שוחזר: {name}', es: 'Revertido: {name}', fr: 'Rétabli : {name}', ru: 'Откачено: {name}', zh: '已还原：{name}', ja: '元に戻しました: {name}', pt: 'Revertido: {name}', de: 'Zurückgesetzt: {name}', ko: '되돌림: {name}' },
+  reverted: { en: 'Reverted: {name}', he: 'שוחזר: {name}', es: 'Revertido: {name}', fr: 'Rétabli : {name}', ru: 'Откачено: {name}', zh: '已还原：{name}', ja: '元に戻しました：{name}', pt: 'Revertido: {name}', de: 'Zurückgesetzt: {name}', ko: '되돌림: {name}' },
   revertFailed: {
     en: 'Could not revert: {name}',
     he: 'השחזור נכשל: {name}',
@@ -95,7 +95,7 @@ const T = {
     fr: 'Impossible de rétablir : {name}',
     ru: 'Не удалось откатить: {name}',
     zh: '无法还原：{name}',
-    ja: '元に戻せませんでした: {name}',
+    ja: '元に戻せませんでした：{name}',
     pt: 'Não foi possível reverter: {name}',
     de: 'Zurücksetzen nicht möglich: {name}',
     ko: '되돌릴 수 없음: {name}',

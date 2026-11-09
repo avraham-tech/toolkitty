@@ -5,7 +5,7 @@ import type { Feature, Input } from '../core'
 const T = {
   title: {
     en: 'Standup',
-    he: 'סטנדאפ',
+    he: 'סיכום יומי',
     es: 'Standup',
     fr: 'Standup',
     ru: 'Стендап',
@@ -31,13 +31,13 @@ const T = {
     en: 'This feature is off; turn it on in the /toolkitty panel',
     he: 'השכלול כבוי; הפעל אותו בלוח /toolkitty',
     es: 'Esta función está desactivada; actívala en el panel /toolkitty',
-    fr: 'Cette fonctionnalité est désactivée ; activez-la dans le panneau /toolkitty',
+    fr: 'Cette fonctionnalité est désactivée ; active-la dans le panneau /toolkitty',
     ru: 'Функция выключена; включите её на панели /toolkitty',
     zh: '此功能已关闭；请在 /toolkitty 面板中开启',
-    ja: 'この機能はオフです。/toolkitty パネルでオンにしてください',
+    ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
     pt: 'Este recurso está desativado; ative-o no painel /toolkitty',
-    de: 'Diese Funktion ist aus; im /toolkitty-Panel einschalten',
-    ko: '이 기능이 꺼져 있습니다. /toolkitty 패널에서 켜세요',
+    de: 'Diese Funktion ist aus; aktiviere sie im Panel /toolkitty',
+    ko: '이 기능이 꺼져 있습니다. /toolkitty 창에서 켜세요',
   },
   commandDesc: {
     en: 'Summary of what was done today in git: commits and changes',
@@ -89,7 +89,7 @@ const T = {
   },
   uncommitted: {
     en: 'uncommitted changes',
-    he: 'שינויים שטרם נשמרו',
+    he: 'שינויים שטרם נכנסו לקומיט',
     es: 'cambios sin confirmar',
     fr: 'modifications non validées',
     ru: 'незакоммиченные изменения',

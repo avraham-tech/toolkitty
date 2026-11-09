@@ -7,12 +7,12 @@ import { emptyState, ICONS, listRow, sectionTitle } from '../ui'
 import type { Chip } from '../ui'
 
 const T = {
-  title: { en: 'Daily total', he: 'סה"כ יומי', es: 'Total diario', fr: 'Total quotidien', ru: 'Итог за день', zh: '每日总计', ja: '1日の合計', pt: 'Total diário', de: 'Tagessumme', ko: '일일 합계' },
+  title: { en: 'Daily total', he: 'סה״כ יומי', es: 'Total diario', fr: 'Total quotidien', ru: 'Итог за день', zh: '每日总计', ja: '1日の合計', pt: 'Total diário', de: 'Tagessumme', ko: '일일 합계' },
   description: {
     en: 'A line showing how many hours you worked with Claude today, across all sessions.',
-    he: 'פס שמראה כמה שעות עבדת היום עם קלוד, בכל הסשנים.',
+    he: 'פס שמראה כמה שעות עבדת היום עם Claude, בכל הסשנים.',
     es: 'Una línea que muestra cuántas horas has trabajado hoy con Claude, en todas las sesiones.',
-    fr: "Une ligne qui indique combien d'heures vous avez travaillé aujourd'hui avec Claude, toutes sessions confondues.",
+    fr: "Une ligne qui indique combien d’heures tu as travaillé aujourd’hui avec Claude, toutes sessions confondues.",
     ru: 'Строка, показывающая, сколько часов вы сегодня работали с Claude во всех сессиях.',
     zh: '一行显示你今天与 Claude 一起工作了多少小时，涵盖所有会话。',
     ja: '今日、すべてのセッションを合わせて Claude と何時間作業したかを示す1行です。',
@@ -21,15 +21,15 @@ const T = {
     ko: '오늘 모든 세션을 합쳐 Claude와 몇 시간 작업했는지 보여 주는 한 줄입니다.',
   },
   today: { en: 'Today', he: 'היום', es: 'Hoy', fr: "Aujourd'hui", ru: 'Сегодня', zh: '今天', ja: '今日', pt: 'Hoje', de: 'Heute', ko: '오늘' },
-  hoursWithClaude: { en: 'hours of work with Claude', he: 'שעות עבודה עם קלוד', es: 'horas de trabajo con Claude', fr: 'heures de travail avec Claude', ru: 'ч работы с Claude', zh: '与 Claude 一起工作的小时数', ja: 'Claude との作業時間', pt: 'horas de trabalho com o Claude', de: 'Stunden Arbeit mit Claude', ko: 'Claude와 작업한 시간' },
+  hoursWithClaude: { en: 'hours of work with Claude', he: 'שעות עבודה עם Claude', es: 'horas de trabajo con Claude', fr: 'heures de travail avec Claude', ru: 'ч работы с Claude', zh: '与 Claude 一起工作的小时数', ja: 'Claude との作業時間', pt: 'horas de trabalho com o Claude', de: 'Stunden Arbeit mit Claude', ko: 'Claude와 작업한 시간' },
   dToday: {
     en: 'Today: {time} of work · {turns} turns this session',
-    he: 'היום: {time} עבודה · {turns} תורות בסשן הזה',
+    he: 'היום: {time} עבודה · {turns} תורים בסשן הזה',
     es: 'Hoy: {time} de trabajo · {turns} turnos en esta sesión',
     fr: 'Aujourd\'hui : {time} de travail · {turns} tours dans cette session',
     ru: 'Сегодня: {time} работы · ходов в этой сессии: {turns}',
     zh: '今天：工作 {time} · 本会话 {turns} 轮',
-    ja: '今日: 作業 {time} · このセッションで {turns} ターン',
+    ja: '今日：作業 {time} · このセッションで {turns} ターン',
     pt: 'Hoje: {time} de trabalho · {turns} turnos nesta sessão',
     de: 'Heute: {time} Arbeit · {turns} Durchgänge in dieser Session',
     ko: '오늘: 작업 {time} · 이 세션 {turns}턴',

@@ -8,7 +8,7 @@ const T = {
   title: {
     en: 'Secret masking',
     he: 'הסתרת סודות',
-    es: 'Ocultar secretos',
+    es: 'Ocultación de secretos',
     fr: 'Masquage des secrets',
     ru: 'Скрытие секретов',
     zh: '密钥遮蔽',

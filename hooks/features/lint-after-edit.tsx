@@ -5,9 +5,9 @@ import type { Feature, ToolCallInput, ToolCallOutput } from '../core'
 import { recordEvidence } from '../evidence'
 
 const T = {
-  title: { en: 'Lint after edit', he: 'לינט אחרי עריכה', es: 'Lint tras editar', fr: 'Lint après modification', ru: 'Линт после правки', zh: '编辑后 Lint', ja: '編集後に Lint', pt: 'Lint após editar', de: 'Lint nach Änderung', ko: '편집 후 Lint' },
+  title: { en: 'Lint after edit', he: 'לינט אחרי עריכה', es: 'Lint tras editar', fr: 'Lint après modification', ru: 'Линт после правки', zh: '编辑后 Lint', ja: '編集後に Lint', pt: 'Lint após editar', de: 'Lint nach Änderung', ko: '편집 후 린트' },
   description: { en: 'Runs ESLint / ruff on an edited file and passes the problems to the model so it fixes them.', he: 'מריץ ESLint / ruff על קובץ שנערך ומעביר למודל את הבעיות כדי שיתקן.', es: 'Ejecuta ESLint / ruff sobre el archivo editado y pasa los problemas al modelo para que los corrija.', fr: 'Exécute ESLint / ruff sur le fichier modifié et transmet les problèmes au modèle pour qu\'il les corrige.', ru: 'Запускает ESLint / ruff для изменённого файла и передаёт проблемы модели, чтобы она их исправила.', zh: '对编辑过的文件运行 ESLint / ruff，并把问题交给模型去修复。', ja: '編集したファイルに ESLint / ruff を実行し、見つかった問題をモデルに渡して修正させます。', pt: 'Executa ESLint / ruff em um arquivo editado e passa os problemas ao modelo para que ele os corrija.', de: 'Führt ESLint / ruff auf einer bearbeiteten Datei aus und gibt die Probleme ans Modell weiter, damit es sie behebt.', ko: '편집한 파일에 ESLint / ruff를 실행하고, 발견된 문제를 모델에 넘겨 고치게 합니다.' },
-  lintFailed: { en: 'Lint run failed', he: 'הרצת הלינט נכשלה', es: 'Falló la ejecución del lint', fr: 'Échec de l\'exécution du lint', ru: 'Не удалось запустить линт', zh: 'Lint 运行失败', ja: 'Lint の実行に失敗', pt: 'Falha ao executar o lint', de: 'Lint-Lauf fehlgeschlagen', ko: 'Lint 실행 실패' },
+  lintFailed: { en: 'Lint run failed', he: 'הרצת הלינט נכשלה', es: 'Falló la ejecución del lint', fr: 'Échec de l\'exécution du lint', ru: 'Не удалось запустить линт', zh: 'Lint 运行失败', ja: 'Lint の実行に失敗', pt: 'Falha ao executar o lint', de: 'Lint-Lauf fehlgeschlagen', ko: '린트 실행 실패' },
 } as const
 
 const JS_EXT = new Set(['js', 'jsx', 'ts', 'tsx'])

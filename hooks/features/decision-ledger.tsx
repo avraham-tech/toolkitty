@@ -6,7 +6,7 @@ import type { Feature, Input, ToolCallInput, ToolCallOutput } from '../core'
 import { ICONS, emptyState, listRow, paneHeader, sectionTitle } from '../ui'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: {
     en: 'Decision ledger',
     he: 'יומן החלטות',
@@ -24,7 +24,7 @@ const T = {
     he: 'אחרי כל תשובה מודל זול מציין בחירות והנחות ש-Claude עשה בלי לשאול; /decisions מציג אותן. קורא למודל בכל תור.',
     es: 'Tras cada respuesta, un modelo barato lista las elecciones y suposiciones que Claude hizo sin preguntar; /decisions las muestra. Llama a un modelo en cada turno.',
     fr: "Après chaque réponse, un modèle économique liste les choix et hypothèses de Claude faits sans demander ; /decisions les affiche. Appelle un modèle à chaque tour.",
-    ru: 'После каждого ответа недорогая модель перечисляет выборы и допущения, сделанные Claude без вопросов; /decisions показывает их. Вызывает модель каждый ход.',
+    ru: 'После каждого ответа недорогая модель перечисляет решения и допущения, сделанные Claude без вопросов; /decisions показывает их. Вызывает модель каждый ход.',
     zh: '每次回答后，由一个低成本模型列出 Claude 未经询问就做出的选择和假设；/decisions 可查看。每一轮都会调用一次模型。',
     ja: '回答のたびに、低コストのモデルが Claude が確認なしに行った選択と仮定を一覧にします。/decisions で確認できます。毎ターンモデルを呼び出します。',
     pt: 'Após cada resposta, um modelo barato lista as escolhas e suposições que o Claude fez sem perguntar; /decisions as mostra. Chama um modelo a cada turno.',
@@ -45,7 +45,7 @@ const T = {
   },
   off: {
     en: 'Decision ledger is turned off in the Toolkitty pane.',
-    he: 'יומן ההחלטות כבוי בלוח ה-Toolkitty.',
+    he: 'יומן ההחלטות כבוי בלוח /toolkitty.',
     es: 'El registro de decisiones está desactivado en el panel de Toolkitty.',
     fr: 'Le registre des décisions est désactivé dans le panneau Toolkitty.',
     ru: 'Журнал решений отключён в панели Toolkitty.',
@@ -57,7 +57,7 @@ const T = {
   },
   opened: {
     en: 'Decisions pane opened.',
-    he: 'לוח ההחלטות נפתח.',
+    he: 'חלונית ההחלטות נפתחה.',
     es: 'Panel de decisiones abierto.',
     fr: 'Panneau des décisions ouvert.',
     ru: 'Панель решений открыта.',
@@ -120,7 +120,7 @@ const T = {
     fr: '📝 {parts} ce tour',
     ru: '📝 {parts} за этот ход',
     zh: '📝 本轮 {parts}',
-    ja: '📝 このターン: {parts}',
+    ja: '📝 このターン：{parts}',
     pt: '📝 {parts} neste turno',
     de: '📝 {parts} in diesem Durchgang',
     ko: '📝 이번 턴 {parts}',

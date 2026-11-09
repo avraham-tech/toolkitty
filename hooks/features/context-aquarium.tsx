@@ -8,16 +8,16 @@ import { ICONS, paneHeader } from '../ui'
 import type { Level } from '../ui'
 
 const T = {
-  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした: {reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
+  cmdTaken: { en: 'The command /{name} could not be registered: {reason}', he: 'לא ניתן היה לרשום את הפקודה /{name}: {reason}', es: 'No se pudo registrar el comando /{name}: {reason}', fr: 'La commande /{name} ne peut pas être enregistrée : {reason}', ru: 'Не удалось зарегистрировать команду /{name}: {reason}', zh: '无法注册命令 /{name}：{reason}', ja: 'コマンド /{name} を登録できませんでした：{reason}', pt: 'Não foi possível registrar o comando /{name}: {reason}', de: 'Der Befehl /{name} konnte nicht registriert werden: {reason}', ko: '/{name} 명령을 등록할 수 없습니다: {reason}' },
   title: { en: 'Context aquarium', he: 'אקווריום ההקשר', es: 'Acuario de contexto', fr: 'Aquarium du contexte', ru: 'Аквариум контекста', zh: '上下文水族箱', ja: 'コンテキスト水槽', pt: 'Aquário de contexto', de: 'Kontext-Aquarium', ko: '컨텍스트 수족관' },
   description: {
     en: 'The context window as a fish tank: the water rises with usage and turns murky, each tool call in a turn is a fish, bubbles rise while Claude works.',
-    he: 'חלון ההקשר כאקווריום: המים עולים עם השימוש ומתעכרים, כל קריאה לכלי בתור היא דג, ובועות עולות בזמן שClaude עובד.',
+    he: 'חלון ההקשר כאקווריום: המים עולים עם השימוש ומתעכרים, כל קריאה לכלי בתור היא דג, ובועות עולות בזמן ש-Claude עובד.',
     es: 'La ventana de contexto como un acuario: el agua sube con el uso y se enturbia, cada herramienta del turno es un pez y suben burbujas mientras Claude trabaja.',
     fr: 'La fenêtre de contexte en aquarium : l’eau monte avec l’usage et se trouble, chaque appel d’outil du tour est un poisson, des bulles montent pendant que Claude travaille.',
     ru: 'Окно контекста как аквариум: вода поднимается и мутнеет, каждый вызов инструмента в ходе — рыбка, пока Claude работает, поднимаются пузырьки.',
     zh: '把上下文窗口画成鱼缸：用量越多水位越高、水越浑浊，一轮中的每次工具调用是一条鱼，Claude 工作时会冒泡。',
-    ja: 'コンテキストウィンドウを水槽として表示します: 使用量が増えると水位が上がって濁り、ターン内のツール呼び出しは1匹の魚になり、Claude が作業中は泡が立ちます。',
+    ja: 'コンテキストウィンドウを水槽として表示します：使用量が増えると水位が上がって濁り、ターン内のツール呼び出しは1匹ずつ魚になり、Claude が作業中は泡が立ちます。',
     pt: 'A janela de contexto como um aquário: a água sobe com o uso e fica turva, cada chamada de ferramenta em um turno é um peixe e bolhas sobem enquanto o Claude trabalha.',
     de: 'Das Kontextfenster als Fischbecken: Das Wasser steigt mit der Nutzung und trübt sich, jeder Tool-Aufruf in einem Durchgang ist ein Fisch, Blasen steigen auf, während Claude arbeitet.',
     ko: '컨텍스트 창을 어항으로 보여 줍니다. 사용량이 늘수록 물이 차오르며 탁해지고, 한 턴의 도구 호출 하나가 물고기 한 마리가 되며, Claude가 일하는 동안 거품이 올라옵니다.',
@@ -26,7 +26,7 @@ const T = {
     en: 'The feature is off; turn it on in the /toolkitty pane',
     he: 'השכלול כבוי; הפעל אותו בלוח /toolkitty',
     es: 'La función está desactivada; actívala en el panel /toolkitty',
-    fr: 'La fonctionnalité est désactivée ; activez-la dans le panneau /toolkitty',
+    fr: 'La fonctionnalité est désactivée ; active-la dans le panneau /toolkitty',
     ru: 'Функция отключена; включите её в панели /toolkitty',
     zh: '该功能已关闭；请在 /toolkitty 面板中开启',
     ja: 'この機能はオフです。/toolkitty ペインでオンにしてください',
@@ -69,10 +69,10 @@ const T = {
     fr: 'L’eau se trouble : le contexte dépasse 90 %. Il est temps de faire /compact ou de repartir à zéro.',
     ru: 'Вода мутнеет: контекст заполнен более чем на 90%. Пора выполнить /compact или начать заново.',
     zh: '水变浑浊了：上下文已超过 90%。该 /compact 或重新开始了。',
-    ja: '水が濁ってきました: コンテキストが90%を超えています。/compact するか、新しく始めましょう。',
+    ja: '水が濁ってきました：コンテキストが90%を超えています。/compact するか、新しく始めましょう。',
     pt: 'A água está ficando turva: o contexto passou de 90%. Hora de usar /compact ou começar do zero.',
     de: 'Das Wasser wird trüb: Der Kontext liegt über 90 %. Zeit für /compact oder einen Neustart.',
-    ko: '물이 탁해지고 있습니다: 컨텍스트가 90%를 넘었습니다. /compact 하거나 새로 시작할 때입니다.',
+    ko: '물이 탁해지고 있습니다: 컨텍스트가 90%를 넘었습니다. /compact를 실행하거나 새로 시작할 때입니다.',
   },
   alt: {
     en: 'An aquarium filled to {percent}, with {n} fish',
