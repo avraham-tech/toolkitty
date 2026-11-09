@@ -229,7 +229,7 @@ Run in this order. Each line is a command or a check with a visible result.
 [ ] 12 Release to ~/.claude/skills/toolkit only on Avraham's explicit word (toolkit-dev-vs-release rule)
 ```
 
-## 5. Install instructions to TEST (not yet run anywhere)
+## 5. Install instructions (TESTED 2026-11-09 on a clean profile, CLI 2.1.317: both forms work; see RELEASE-CHECKLIST)
 
 > Status: **NOT TESTED.** No public repository exists. These are the
 > commands the README will show, checked this session against the current

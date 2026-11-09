@@ -49,7 +49,7 @@ Current: MIT (max adoption; copying allowed, credit required). Alternatives: AGP
 
 ## Install command (verify before publishing)
 - `claude plugin install <plugin>` exists in CLI 2.1.317 and installs from the AVAILABLE marketplaces; `plugin@marketplace` picks one. Until Toolkitty is listed in the official directory, the README must show the GitHub form: `/plugin marketplace add avraham-tech/<repo>` then `/plugin install toolkitty@avraham-tech`, exactly as the plugin-authoring reference describes for a marketplace.json in the repo. The banner's short line (`claude plugin install toolkitty`) is the goal state once the directory lists it.
-- [ ] Test the real install on a clean machine or a second user profile before the launch post.
+- [x] Clean-profile install tested 2026-11-09 (empty `CLAUDE_CONFIG_DIR`, CLI 2.1.317): `claude plugin marketplace add avraham-tech/toolkitty` → `claude plugin install toolkitty@avraham-tech` and the one-liner `claude plugin install toolkitty --marketplace avraham-tech/toolkitty` both install 0.1.0; installed copy validates and passes 1,936 tests; uninstall leaves no plugin entry. Note: `claude plugin details` shows "Hooks (0)" because the inventory counts classic hooks, not the hooks module; the token cost line "~0 tok always-on" likewise ignores the module's compose sections (~520 tokens measured live).
 - The banner's feature count is read from `hooks/features/index.ts` by `scratchpad/make_assets.py`; regenerate assets after adding or removing a feature.
 - Brand rule: the cat stays as drawn (cream + orange, dark face, pointed ears, paws on a terminal). No new accessories, glows or badges in future illustrations; poses may change (mascot states), the character does not.
 

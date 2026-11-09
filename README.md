@@ -1,6 +1,6 @@
 Toolkitty is a Claude Code plugin with 91 switchable features that monitor your session, optimize context and cost, block dangerous commands, verify claims against real test runs, and keep you company with a tiny cat.
 
-<!-- Install commands: the two-step form and the one-liner are to be verified on a clean profile before launch (docs/LAUNCH-PLAN.md section 5). -->
+<!-- Install commands verified 2026-11-09 on a clean profile (empty CLAUDE_CONFIG_DIR, Claude Code 2.1.317, Windows 11): both forms install 0.1.0 from this repo, the installed copy passes `claude plugin validate` and its own 1,936 tests, and `plugin uninstall` leaves no plugin entry (the marketplace cache folder stays, empty of plugins). -->
 <!-- Banner image docs/assets/banner.png also serves as the GitHub social preview. -->
 
 <p align="center">
