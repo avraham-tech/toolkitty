@@ -516,7 +516,7 @@ test('Hebrew: notice, chip, pane and buttons', SLOW, async ($, on) => {
   failing(r, 'npm test')
   await start($)
   await fails($, 'npm test', 3)
-  expect(await mine(r, $)).toEqual(['כשלון חוזר: "npm test" נכשלה 3 פעמים עם אותה שגיאה'])
+  expect(await mine(r, $)).toEqual(['כישלון חוזר: "npm test" נכשלה 3 פעמים עם אותה שגיאה'])
   expect(await chipOf($)).toBe('↻ 3× אותה שגיאה')
   const ui = await mountPane($, 'error-detective')
   const all = await texts(ui)

@@ -284,7 +284,7 @@ test('post texts are localized, scrubbed, and end with the install command and t
     }
   }
   expect(postText('savings', SAVINGS, 'en')).toBe('Toolkitty saved me an estimated $3.70 (1.2M tokens) this week.\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
-  expect(postText('savings', SAVINGS, 'he')).toBe('ה-Toolkitty חסך לי לפי הערכה $3.70 (1.2M אסימונים) השבוע.\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
+  expect(postText('savings', SAVINGS, 'he')).toBe('Toolkitty חסך לי לפי הערכה $3.70 (1.2M טוקנים) השבוע.\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
   expect(postText('safety', SAFETY, 'en')).toBe('Toolkitty blocked 7 potentially dangerous operations this month (secrets 3, destructive commands 2, risky edits 1, red ci 1).\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
   expect(postText('safety', SAFETY, 'he')).toContain('חסם 7 פעולות שעלולות להיות מסוכנות')
   expect(postText('safety', { total: 0, families: {} }, 'en')).toContain('no potentially dangerous operations this month')
@@ -642,7 +642,7 @@ test('the pane is Hebrew when the language is', SLOW, async ($, on) => {
   expect(labels).toContain('שמור SVG')
   expect(labels).toContain('העתק פוסט')
   await ui.press({ key: 'copy-savings' })
-  expect(r.copies[0]).toBe('ה-Toolkitty חסך לי לפי הערכה $0.13 (42K אסימונים) השבוע.\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
+  expect(r.copies[0]).toBe('Toolkitty חסך לי לפי הערכה $0.13 (42K טוקנים) השבוע.\nclaude plugin install toolkitty --marketplace avraham-tech/toolkitty\nhttps://github.com/avraham-tech/toolkitty')
   await ui.press({ key: 'save-safety' })
   expect(r.writes[0]!.text).toContain('פעולות שעלולות להיות מסוכנות נחסמו')
   await ui.unmount()

@@ -192,7 +192,7 @@ test('step 2 in Hebrew uses the same three profiles', { timeoutMs: 30_000 }, asy
   const ui = await open($)
   await ui.press({ key: 'pick-he' })
   const all = await joined(ui)
-  expect(all).toContain('רק הכותרת והפעמון; התראות שקטות, בלי ויזואלי.')
+  expect(all).toContain('רק הכותרת והפעמון; התראות שקטות, בלי אפקטים ויזואליים.')
   expect(all).toContain('כל שכלולי ברירת המחדל, כולל החבר, האקווריום והאנימציות.')
   await ui.unmount()
 })

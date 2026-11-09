@@ -505,7 +505,7 @@ test('Hebrew: the command, the pane and the labels are localized', { timeoutMs: 
   expect(text).toContain('ניהול הקשר')
   expect(text).toContain('אימות')
   expect(text).toContain('מודעות לתקציב')
-  expect(text).toContain('מבוסס על ההיסטוריה שלכם בלבד')
+  expect(text).toContain('מבוסס על ההיסטוריה שלך בלבד')
   expect(text).toContain('תואר: ')
   expect(text).not.toContain('Duplicate work')
   await ui.unmount()
@@ -514,7 +514,7 @@ test('Hebrew: the command, the pane and the labels are localized', { timeoutMs: 
 test('Hebrew: the off text', { timeoutMs: 30_000 }, async ($, on) => {
   setup(on, [], { store: { language: 'he' } })
   await start($)
-  expect((await $.command.run({ command: 'efficiency', args: '' })).text).toBe('ציון היעילות כבוי. הפעילו אותו בחלונית /toolkitty.')
+  expect((await $.command.run({ command: 'efficiency', args: '' })).text).toBe('ציון היעילות כבוי. הפעל אותו בלוח /toolkitty.')
 })
 
 test('switched off: a later session records nothing, the command answers the off text', { timeoutMs: 30_000 }, async ($, on) => {

@@ -255,7 +255,7 @@ test('Japanese: the command texts, the history line and the bar labels', { timeo
   await start($)
   expect((await $.command.run({ command: 'receipt', args: '' })).text).toBe('レシートはまだありません。')
   await busyTurn($, w)
-  expect((await $.command.run({ command: 'receipt', args: '' })).text).toBe('レシートのパネルを開きました。')
+  expect((await $.command.run({ command: 'receipt', args: '' })).text).toBe('レシートペインを開きました。')
   const ui = await pane($)
   expect(await labels(ui)).toEqual(['SVG を保存', 'テキストをコピー', '共有', '印刷', 'フォルダーを開く', 'パスをコピー', '▸ 履歴（1）'])
   expect((await $.command.run({ command: 'receipt', args: 'save' })).text).toBe(`最新のレシートを保存しました：${DIR}/receipt-${STAMP}.svg`)

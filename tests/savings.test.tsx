@@ -266,7 +266,7 @@ test('hebrew: pane, band and command answers', SLOW, async ($, on) => {
   expect(texts).toContain('הסשן הזה')
   expect(texts).toContain('היום')
   expect(texts).toContain('7 הימים האחרונים')
-  expect(texts).toContain('מאז ומעולם')
+  expect(texts).toContain('סך הכול')
   expect(texts).toContain('ארכיון פלט')
   expect((await ui.find({ key: 'savings-copy' }))?.props['label']).toBe('העתק טקסט לשיתוף')
   await ui.unmount()

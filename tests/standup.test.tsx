@@ -121,7 +121,7 @@ test('at most 40 commits are listed', { timeoutMs: 30000 }, async ($, on) => {
 test('Hebrew output', { timeoutMs: 30000 }, async ($, on) => {
   boot(on, { language: 'he' }, { work: ' 1 file changed' })
   await start($)
-  expect((await run($)).text).toBe('מה נעשה היום:\nאין קומיטים מהיום.\n\n1 file changed (שינויים שטרם נשמרו)')
+  expect((await run($)).text).toBe('מה נעשה היום:\nאין קומיטים מהיום.\n\n1 file changed (שינויים שטרם נכנסו לקומיט)')
 })
 
 test('Hebrew, not a repository', { timeoutMs: 30000 }, async ($, on) => {

@@ -407,7 +407,7 @@ test('Hebrew: texts, the title prompt language, ages and the copy toast are in H
     [INDEX]: [entry('h-1', 'ישן', { updatedAt: T0 - 72 * HOUR }), entry('h-2', '', { updatedAt: T0 - HOUR / 4 })],
   })
   await start($)
-  expect((await $.command.run({ command: 'sessions', args: '' })).text).toBe('לוח השיחות נפתח.')
+  expect((await $.command.run({ command: 'sessions', args: '' })).text).toBe('חלונית הסשנים נפתחה.')
   expect(seen.commands.find(c => c.name === 'find')?.argumentHint).toBe('<מונח>')
   expect((await find($, '')).text).toMatch(/[א-ת]/)
   expect((await find($, 'zzz')).text).toMatch(/[א-ת]/)

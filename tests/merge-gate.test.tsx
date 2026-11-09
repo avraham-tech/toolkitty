@@ -266,12 +266,12 @@ test('Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   const r = rig(on, { enabled: ON, lang: 'he' })
   await start($)
   expect((await cmd($, '')).text).toBe('עדיין לא נבדקו דחיפה או מיזוג בסשן הזה.')
-  expect((await cmd($, 'x')).text).toBe('שימוש: /merge-gate (פסק הדין האחרון) או /merge-gate allow (מעבר חד-פעמי)')
+  expect((await cmd($, 'x')).text).toBe('שימוש: /merge-gate (התוצאה האחרונה) או /merge-gate allow (מעבר חד-פעמי)')
   gh(r, { json: failing })
   const res = await bash($, 'gh pr merge 5')
   expect(res.deny).toBe(
-    'Toolkitty · שער מיזוג: ה-CI נכשל בענף feat/x: build, unit. תקנו קודם את הבדיקות שנכשלו. אם המשתמש רוצה להמשיך בכל זאת, הוא יכול להריץ /merge-gate allow למעבר חד-פעמי.',
+    'Toolkitty · שער מיזוג: ה-CI נכשל בענף feat/x: build, unit. תקן קודם את הבדיקות שנכשלו. אם המשתמש רוצה להמשיך בכל זאת, הוא יכול להריץ /merge-gate allow למעבר חד-פעמי.',
   )
-  expect((await cmd($, '')).text).toBe('פסק הדין האחרון (לפני 0 דקות) עבור "gh pr merge 5": נחסם, ה-CI נכשל. build, unit')
-  expect((await cmd($, 'allow')).text).toBe('ניתן מעבר חד-פעמי: ה-git push או ה-gh pr merge הבא יעברו בלי בדיקת CI.')
+  expect((await cmd($, '')).text).toBe('התוצאה האחרונה (לפני 0 דקות) עבור "gh pr merge 5": נחסם, ה-CI נכשל. build, unit')
+  expect((await cmd($, 'allow')).text).toBe('ניתן מעבר חד-פעמי: פקודת git push או gh pr merge הבאה תעבור בלי בדיקת CI.')
 })

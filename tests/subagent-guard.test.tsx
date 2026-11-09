@@ -263,18 +263,18 @@ test('the detail pane keeps the newest 6 denials', SLOW, async ($, on) => {
 test('hebrew: command, deny text, band and detail', SLOW, async ($, on) => {
   const w = boot(on, { language: 'he' })
   await begin($, w)
-  expect((await cmd($, '')).text).toBe('מגבלות תת-סוכנים: 4 במקביל, 25 לסשן, 3,000,000 טוקנים. לשינוי: /agent-cap concurrent|session|tokens <n>.')
+  expect((await cmd($, '')).text).toBe('מגבלות סוכני משנה: 4 במקביל, 25 לסשן, 3,000,000 טוקנים. לשינוי: /agent-cap concurrent|session|tokens <n>.')
   expect((await cmd($, 'concurrent 1')).text).toBe('המגבלה נקבעה: concurrent = 1.')
   expect((await cmd($, 'x')).text).toBe('שימוש: /agent-cap concurrent|session|tokens <n> (מספר שלם חיובי; אפשר להוסיף k או m).')
   w.agents = [agent('a1', 'running')]
   const denied = await spawn($)
   expect(denied.deny).toBe(
-    'Toolkitty · שומר תת-סוכנים: 1 תת-סוכנים כבר רצים (מגבלה 1). המתן שאחד יסתיים, או הגדל את המגבלה עם /agent-cap concurrent <n>.',
+    'Toolkitty · שומר סוכני משנה: 1 סוכני משנה כבר רצים (מגבלה 1). המתן שאחד יסתיים, או הגדל את המגבלה עם /agent-cap concurrent <n>.',
   )
   expect(await bandLine($, ID)).toBe('סוכנים: 1 רצים · 0 הופעלו · 0 טוק׳ · 1 נחסמו')
   const ui = await openDetail($, ID)
   const text = await allText(ui)
-  expect(text).toContain('הפעלות תת-סוכנים שנחסמו (החדשות ראשונות)')
+  expect(text).toContain('הפעלות סוכני משנה שנחסמו (החדשות ראשונות)')
   expect(text).toContain('לפני 0:00 · מגבלת מקביליות · 1 רצים, מגבלה 1')
   expect(text).toContain('רצים עכשיו')
   await ui.unmount()

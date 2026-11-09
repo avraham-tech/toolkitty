@@ -145,7 +145,7 @@ test('/toolkitty-export writes the current setup, with language and scope', { ti
   await start($)
   w.store.set('scope-guard:C:/proj', ['src/**'])
   const r = await $.command.run({ command: 'toolkitty-export', args: '' })
-  expect(r.text).toMatch(/^Configuración del Toolkitty escrita en .*toolkitty\.json$/)
+  expect(r.text).toMatch(/^Configuración de Toolkitty escrita en .*toolkitty\.json$/)
   expect(w.written.length).toBe(1)
   expect(w.written[0]!.path).toBe(FILE)
   expect(w.written[0]!.text.endsWith('}\n')).toBe(true)
@@ -210,7 +210,7 @@ test('Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   expect(r.text).toContain('כבויים (1): buddy')
   expect(r.text).toContain('שפה: he')
   const e = await $.command.run({ command: 'toolkitty-export', args: '' })
-  expect(e.text).toContain('הגדרות ה-Toolkitty נכתבו אל')
+  expect(e.text).toContain('הגדרות Toolkitty נכתבו אל')
   void w
 })
 

@@ -393,7 +393,7 @@ test('Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   expect(all).toContain('בשיחה עכשיו')
   expect(all).toContain('ניתן לשחרור (הערכה, מאומת רק אחרי דחיסה)')
   expect(await labels(ui)).toEqual(['נתח', 'הכן אופטימיזציה', 'צור העברה', 'הצג בזבוז'])
-  expect((await chip($))?.text).toBe('♻ בריאות הקשר 57')
+  expect((await chip($))?.text).toBe('♻ בריאות 57')
   expect((await $.command.run({ command: 'context-doctor', args: '' })).text).toBe('רופא ההקשר נפתח.')
   await ui.unmount()
 })

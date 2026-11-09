@@ -338,7 +338,7 @@ test('edits are never denied by the review', SLOW, async ($, on) => {
 test('Hebrew: command, buttons, labels and toasts are in Hebrew', SLOW, async ($, on) => {
   const { plan, fs, seen } = boot(on, { [A]: 'a1' }, { language: 'he' })
   await start($)
-  expect((await $.command.run({ command: 'diff-review', args: '' })).text).toBe('לוח הסקירה נפתח.')
+  expect((await $.command.run({ command: 'diff-review', args: '' })).text).toBe('חלונית הסקירה נפתחה.')
   await edit($, plan, fs, A, 'a2')
   await edit($, plan, fs, B, 'new', 'Write')
   await finish($)
@@ -347,7 +347,7 @@ test('Hebrew: command, buttons, labels and toasts are in Hebrew', SLOW, async ($
   const out = await texts(ui)
   expect(out).toContain('(חדש)')
   const labels = (await ui.findAll({ type: 'Button' })).map((b: any) => b.props['label'])
-  expect(labels).toEqual(['שחזר הכל', 'שחזר', 'השאר', 'שחזר', 'השאר'])
+  expect(labels).toEqual(['שחזר הכול', 'שחזר', 'השאר', 'שחזר', 'השאר'])
   await ui.press({ key: `revert-${w(A)}` })
   // immediate feedback: shown despite the cooldown the files-changed notice started
   expect(await noticeTexts($)).toContain('שוחזר: a.ts')

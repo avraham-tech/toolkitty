@@ -309,10 +309,10 @@ test('Hebrew: the band and the detail pane are in Hebrew', SLOW, async ($, on) =
   const { clock, git } = boot(on, { language: 'he' })
   git.files = 14
   await start($, clock)
-  expect(await bandText($)).toBe('⚠ 14 קבצים לא מקומטים')
+  expect(await bandText($)).toBe('⚠ 14 קבצים ללא קומיט')
   const ui = await openDetail($)
   expect(await ui.find({ type: 'Text', text: 'תזכורת קומיט' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'קבצים שלא נשמרו ב-commit: 14' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'קבצים ללא קומיט: 14' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: '+1 נוספים' })).toBeDefined()
   await ui.unmount()
 })

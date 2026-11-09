@@ -266,7 +266,7 @@ test('Hebrew: command, pane headings and rows are in Hebrew', SLOW, async ($, on
   expect(out).toContain('1 התורים האחרונים')
   expect(out).toContain('# סה״כ מודל כלים סוכנים')
   expect(out).toContain('סשן: 4.0s ב-1 תורים')
-  expect(out).toContain('מודל 50% · כלים 50% · תתי-סוכנים 0%')
+  expect(out).toContain('מודל 50% · כלים 50% · סוכני משנה 0%')
   expect(out).toContain('זמן לפי כלי')
   expect(out).toContain('Bash: 2.0s (1 קריאות)')
   expect(out).toContain('הקריאות האיטיות ביותר')

@@ -597,14 +597,14 @@ test('Hebrew: command text, pane title, counts, names, buttons', { timeoutMs: 30
   expect(r.text).toContain('תקינים')
   expect(r.text).toContain('נכשלו')
   expect(r.text).toContain('דולגו')
-  expect(r.text).toContain('Pane buddy'.replace('Pane', 'לוח'))
+  expect(r.text).toContain('Pane buddy'.replace('Pane', 'חלונית'))
   const ui = await mountPane($)
   const all = await texts(ui)
   expect(all).toContain('בדיקה עצמית')
   expect(all).toMatch(/\d+ תקינים · 1 נכשלו · 3 דולגו/)
-  expect(all).toContain(row('✗', 'לוח buddy', 'x')) // the engine's reason stays as given
+  expect(all).toContain(row('✗', 'חלונית buddy', 'x')) // the engine's reason stays as given
   expect(all).toContain('משטחים')
-  expect(all).toContain('לוחות')
+  expect(all).toContain('חלוניות')
   expect((await ui.find({ key: 'run' })).props.label).toBe('הרץ שוב')
   expect((await ui.find({ key: 'copy' })).props.label).toBe('העתק דוח')
   expect((await ui.find({ key: 'model' })).props.label).toBe('הרץ עם מודל')

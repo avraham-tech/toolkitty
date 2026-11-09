@@ -382,7 +382,7 @@ test('Hebrew: command, pane headings, weekday names, Copy and the copied letter 
   expect((await $.command.run({ command: 'report', args: '' })).text).toBe('הדוח השבועי נפתח.')
   const ui = await openPane($)
   const out = await texts(ui)
-  for (const v of ['שעות', 'תורות', 'טוקנים', 'עלות', 'מה Toolkitty עשה בשבילך', 'תורות ליום', 'ג׳', 'ה׳', 'ב׳']) expect(out).toContain(v)
+  for (const v of ['שעות', 'תורים', 'טוקנים', 'עלות', 'מה Toolkitty עשה בשבילך', 'תורים ליום', 'ג׳', 'ה׳', 'ב׳']) expect(out).toContain(v)
   expect(out).toContain('הכלים המובילים: ')
   const copy = await ui.find({ key: 'report-copy' })
   expect(copy?.props['label']).toBe('העתק')

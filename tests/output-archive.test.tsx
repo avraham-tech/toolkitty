@@ -333,7 +333,7 @@ test('hebrew: the footer, the command answers', SLOW, async ($, on) => {
   await begin($, w)
   expect((await archive($)).text).toBe('עדיין לא הועבר דבר לארכיון.')
   expect((await recall($, 'zz')).text).toBe('שימוש: /recall <מספר> [מונח]')
-  expect((await recall($, '3')).text).toBe("אין פלט מס' 3 בארכיון. /archive מציג את הרשימה.")
+  expect((await recall($, '3')).text).toBe("אין פלט #3 בארכיון. /archive מציג את הרשימה.")
   w.toolResult = () => bashResult(rows(1500))
   const r = await bash($)
   expect(r.result.stdout).toContain('/recall 1')

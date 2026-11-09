@@ -270,9 +270,9 @@ test('Hebrew: the receipt, the buttons and the share text are localized', { time
   expect(lines).toContain('פקודת מעטפת מסוכנת')
   expect(lines).toContain('עלול להיות מסוכן')
   expect(lines).toContain('נחסם')
-  expect(lines).toContain('נדרשת הבדיקה שלכם')
+  expect(lines).toContain('נדרשת בדיקה שלך')
   const labels = (await ui.findAll({ type: 'Button' })).map((b: any) => b.props.label)
-  expect(labels).toEqual(['פרטים', 'שיתוף מוסתר', 'סגירה', 'שמור טקסט', 'הדפס', 'פתח תיקייה', 'העתק נתיב'])
+  expect(labels).toEqual(['פרטים', 'שתף גרסה מוסתרת', 'סגור', 'שמור טקסט', 'הדפס', 'פתח תיקייה', 'העתק נתיב'])
   await ui.press({ key: 'safety-receipt-share' })
   expect(w.copies[0]?.text).toContain('קבלת בטיחות של Toolkitty')
   expect(w.copies[0]?.text).toContain('פקודת מעטפת מסוכנת')
@@ -301,7 +301,7 @@ test('off switch: no receipt on an incident, the command and the pane say it is 
 test('off switch, Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   setup(on, [], { store: { language: 'he' } })
   await start($)
-  expect((await $.command.run({ command: 'safety-receipt', args: '' })).text).toBe('קבלות הבטיחות כבויות. הפעילו אותן בחלונית /toolkitty.')
+  expect((await $.command.run({ command: 'safety-receipt', args: '' })).text).toBe('קבלות הבטיחות כבויות. הפעל אותן בלוח /toolkitty.')
 })
 
 test('no surface attached: the receipt still lands in the atom and the turn goes on', { timeoutMs: 30_000 }, async ($, on) => {

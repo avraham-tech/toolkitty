@@ -236,7 +236,7 @@ test('Hebrew labels', { timeoutMs: 30_000 }, async ($, on) => {
   expect(all).toContain('סה״כ')
   expect(all).toContain('תודה שנהניתם')
   await ui.press({ key: 'exp-share-receipt' })
-  expect(w.copies[0]!.text).toContain('קבל גם אתה')
+  expect(w.copies[0]!.text).toContain('קבלו גם אתם')
   await ui.unmount()
   const d = await $.ui.mount({ ...PLACED(1), surface: 'desktop' })
   expect((await svgOf(d)).alt).toContain('קבלה לתור האחרון')

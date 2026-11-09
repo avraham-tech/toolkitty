@@ -279,7 +279,7 @@ test('Hebrew: band and detail pane words are in Hebrew', SLOW, async ($, on) => 
   const ui = await openDetail($)
   expect(await ui.find({ type: 'Text', text: 'מד עלות' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: 'עלות לכל תור (החדשים ראשונים)' })).toBeDefined()
-  expect(await rowsAfter(ui, /^לפני /)).toEqual(['לפני 0:01 · +$1.50 · סה"כ $1.50'])
+  expect(await rowsAfter(ui, /^לפני /)).toEqual(['לפני 0:01 · +$1.50 · סה״כ $1.50'])
   await ui.unmount()
 })
 

@@ -192,7 +192,7 @@ test('hebrew: command answers and band in hebrew', { timeoutMs: 60_000 }, async 
   await submit($, 'x')
   expect((await noticesOf($, ID))[0]).toBe('מטמון הפרומפט קר: השליחה הזו קוראת מחדש את כל ההקשר (45% מהחלון, 90,000 טוקנים).')
   const ui = await openDetail($, ID)
-  expect(await allText(ui)).toMatch(/שליחות במטמון קר שהוזהר עליהן: 1/)
+  expect(await allText(ui)).toMatch(/אזהרות על שליחה במטמון קר: 1/)
   await ui.unmount()
 })
 

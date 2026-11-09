@@ -218,7 +218,7 @@ test('/handoff answers off when the handoff feature is off, whatever this featur
 test('hebrew: commands, toast and the handoff answer', SLOW, async ($, on) => {
   const w = boot(on, { ...ON, language: 'he' })
   await begin($, w)
-  expect((await idle($, '')).text).toBe('העברה אחרי חוסר פעילות מציעה /handoff אחרי 20 דקות. לשינוי: /idle-handoff <דקות>.')
+  expect((await idle($, '')).text).toBe('העברה אחרי חוסר פעילות מציעה /handoff אחרי 20 דקות של חוסר פעילות. לשינוי: /idle-handoff <דקות>.')
   expect((await idle($, '2')).text).toBe('ההעברה אחרי חוסר פעילות נקבעה ל-2 דקות.')
   expect((await idle($, 'x')).text).toBe('ציין מספר שלם של דקות בין 1 ל-1440.')
   expect((await handoff($)).text).toBe('התצוגה המקדימה להעברה נפתחה. שום דבר לא נדחס עד שתלחץ על דחוס עכשיו.')

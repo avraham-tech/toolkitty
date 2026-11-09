@@ -303,7 +303,7 @@ test('Hebrew: band wording for one and for many, and the detail pane', SLOW, asy
   expect(await bandText($)).toBe('⚠ 2 פעולות נכשלו בתור הזה · 2 בסשן')
 
   const ui = await openDetail($)
-  expect(await ui.find({ type: 'Text', text: 'מונה כשלונות' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'מונה כישלונות' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: 'פעולות שנכשלו בסשן: 2 (החדשות ראשונות)' })).toBeDefined()
   expect(await rowsAfter(ui, /^לפני /)).toContain('לפני 0:00 · Bash · שגיאה')
   await ui.unmount()

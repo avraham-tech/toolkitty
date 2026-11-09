@@ -186,7 +186,7 @@ test('Hebrew sheet labels and notices', { timeoutMs: 30_000 }, async ($, on) => 
   expect(await labels(ui)).toEqual(['פתח תיקייה', 'העתק נתיב', 'WhatsApp', 'Telegram', 'X', 'LinkedIn', 'Reddit', 'אימייל', 'העתק טקסט', 'הדפס'])
   const all = await joined(ui)
   expect(all).toContain('שיתוף אל')
-  expect(all).toContain('שום דבר לא מועלה. התמונה נמצאת בדיסק; צרפו אותה באפליקציה שבחרתם.')
+  expect(all).toContain('שום דבר לא מועלה לרשת. התמונה שמורה בדיסק; צרף אותה באפליקציה שבחרת.')
   expect(all).toContain(`התמונה נשמרה: ${SHOWN}receipt-${STAMP}.svg`)
   await ui.press({ key: 'share-email' })
   expect(await lastNotice($)).toBe('אימייל נפתח, הטקסט הועתק (rundll32 → 0)')

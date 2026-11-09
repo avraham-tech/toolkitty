@@ -416,7 +416,7 @@ test('/exports in Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   w.dirs['D:/out'] = []
   await start($)
   expect((await $.command.run({ command: 'exports', args: 'dir D:/out' })).text).toBe(`הייצואים נשמרים מעתה ב-D:${BS}out`)
-  expect((await $.command.run({ command: 'exports', args: '' })).text).toBe('פאנל הייצואים נפתח.')
+  expect((await $.command.run({ command: 'exports', args: '' })).text).toBe('חלונית הייצואים נפתחה.')
   const ui = await $.ui.mount({ ...EXPORTS(), surface: 'desktop' })
   expect(await labels(ui)).toEqual(['פתח תיקייה', 'העתק נתיב', 'שנה תיקייה'])
   await ui.unmount()

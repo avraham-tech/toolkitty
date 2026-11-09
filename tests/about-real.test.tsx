@@ -100,7 +100,7 @@ test('the support line in Hebrew with a Hebrew Dismiss', SLOW, async ($, on) => 
   boot(on, { ...activity(), 'about:sessions': 30, language: 'he' })
   await start($)
   const ui = await reportPane($)
-  expect((await texts(ui)).includes('אם ה-Toolkitty חסך לך זמן, קפה סמלי יתקבל בברכה: https://ko-fi.com/toolkitty')).toBe(true)
+  expect((await texts(ui)).includes('אם Toolkitty חסך לך זמן, קפה סמלי יתקבל בברכה: https://ko-fi.com/toolkitty')).toBe(true)
   expect(await buttonLabels(ui)).toEqual(['העתק', 'סגור'])
   await ui.unmount()
 })

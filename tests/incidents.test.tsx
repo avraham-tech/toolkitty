@@ -321,7 +321,7 @@ test('Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   expect(all).toContain('סך הכול בפרויקט הזה: 1')
   expect(all).toContain('הרגע')
   const copy = await pane.find({ key: 'incidents-copy' })
-  expect(copy?.props['label']).toBe('העתקה')
+  expect(copy?.props['label']).toBe('העתק')
   await pane.press({ key: 'incidents-copy' })
   await r.clock.settle()
   expect(r.copied).toEqual(['Toolkitty עצר 1 אסונות בפרויקט שלי החודש: 1 עריכות מסוכנות'])

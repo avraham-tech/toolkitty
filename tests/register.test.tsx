@@ -79,7 +79,7 @@ test('the language button opens a picker of all languages; picking one keeps it 
   expect(w.store.get('language')).toBe('he')
   expect(await ui.find({ key: 'lang-he' })).toBeUndefined() // the picker closes
   expect((await ui.find({ key: 'lang' }))!.props['label']).toBe('🌐 עברית')
-  expect(await labels(ui)).toContain('הפעל הכל')
+  expect(await labels(ui)).toContain('הפעל הכול')
   expect(await joined(ui)).toContain('לחיצה על שורה מפעילה או מכבה את השכלול')
   expect(await rowLabel(ui, 'buddy')).toBe('● חבר')
   await ui.press({ key: 'lang' })
@@ -305,7 +305,7 @@ test('/toolkitty help in Hebrew asks for a Hebrew answer', { timeoutMs: 30_000 }
 test('/toolkitty pane opened in Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   world(on, { store: { language: 'he' } })
   await start($)
-  expect((await $.command.run({ command: 'toolkitty', args: '' })).text).toBe('לוח ה-Toolkitty נפתח.')
+  expect((await $.command.run({ command: 'toolkitty', args: '' })).text).toBe('לוח Toolkitty נפתח.')
 })
 
 // ---------- opening the pane: session.start, session.attach, turn.start ----------
@@ -607,7 +607,7 @@ test('/notices opens the pane, in the chosen language', { timeoutMs: 30_000 }, a
 test('/notices in Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   world(on, { store: { language: 'he', enabled: { 'monday-report': false, achievements: false } } }) // achievements would post a Polyglot trophy for language != en
   await start($)
-  expect((await $.command.run({ command: 'notices', args: '' })).text).toBe('פאנל ההתראות נפתח.')
+  expect((await $.command.run({ command: 'notices', args: '' })).text).toBe('חלונית ההתראות נפתחה.')
   const ui = await $.ui.mount(NOTICES('terminal'))
   const all = await joined(ui)
   expect(all).toContain('התראות')
@@ -673,7 +673,7 @@ test('/home opens the home pane', { timeoutMs: 30_000 }, async ($, on) => {
 test('/home in Hebrew', { timeoutMs: 30_000 }, async ($, on) => {
   world(on, { store: { language: 'he' } })
   await start($)
-  expect((await $.command.run({ command: 'home', args: '' })).text).toBe('הבית של ה-Toolkitty נפתח.')
+  expect((await $.command.run({ command: 'home', args: '' })).text).toBe('הבית של Toolkitty נפתח.')
   const ui = await $.ui.mount(HOME('terminal'))
   const all = await joined(ui)
   expect(all).toContain('עכשיו')
