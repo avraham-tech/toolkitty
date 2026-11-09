@@ -1,0 +1,2 @@
+name,contact,platform,surface,invited_on,installed,clean_install,first_problem,keep_one_feature,quote,quote_ok,fixed_in,retested,notes
+"<name>","<DM / email>","Windows 11 | macOS 15 | Ubuntu 24.04","desktop app | CLI","2026-11-10","yes | no | pending","yes | no","<exact first thing that broke or confused>","<one feature>","<verbatim quote, only with permission>","yes | no | not asked","<version>","yes | no | n/a","<free text>"
