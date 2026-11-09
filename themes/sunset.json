@@ -1,0 +1,34 @@
+{
+  "id": "sunset",
+  "name": "Sunset",
+  "aurora": {
+    "idle": [
+      "#fb7185",
+      "#f97316",
+      "#f59e0b"
+    ],
+    "working": [
+      "#ec4899",
+      "#f43f5e",
+      "#fb923c"
+    ],
+    "warn": [
+      "#fbbf24",
+      "#f59e0b",
+      "#ea580c"
+    ],
+    "danger": [
+      "#dc2626",
+      "#be123c",
+      "#9f1239"
+    ]
+  },
+  "receipt": {
+    "footer": "SEE YOU AT DUSK",
+    "accent": "#f97316"
+  },
+  "buddy": {
+    "frame": "#fb7185",
+    "accent": "#f97316"
+  }
+}

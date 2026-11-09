@@ -1,0 +1,17 @@
+{
+  "name": "toolkitty",
+  "version": "0.1.0",
+  "description": "Toolkitty: your coding companion for Claude Code. 91 switchable features: monitor, optimize, protect, verify, and a tiny cat.",
+  "author": {
+    "name": "Avraham Shemesh",
+    "url": "https://github.com/avraham-tech"
+  },
+  "homepage": "https://github.com/avraham-tech/toolkitty",
+  "repository": "https://github.com/avraham-tech/toolkitty",
+  "documentationUrl": "https://github.com/avraham-tech/toolkitty#readme",
+  "supportUrl": "https://github.com/avraham-tech/toolkitty/issues",
+  "privacyPolicyUrl": "https://github.com/avraham-tech/toolkitty#what-leaves-your-machine",
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "icon": "./.claude-plugin/icon.png"
+}

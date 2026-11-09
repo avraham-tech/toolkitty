@@ -1,0 +1,21 @@
+{
+  "name": "avraham-tech",
+  "owner": {
+    "name": "Avraham Shemesh",
+    "url": "https://github.com/avraham-tech"
+  },
+  "metadata": {
+    "description": "Plugins by Avraham Shemesh"
+  },
+  "plugins": [
+    {
+      "name": "toolkitty",
+      "source": "./",
+      "description": "Your coding companion for Claude Code: 91 switchable features to monitor, optimize, protect and verify, with a tiny cat.",
+      "author": {
+        "name": "Avraham Shemesh"
+      },
+      "license": "MIT"
+    }
+  ]
+}

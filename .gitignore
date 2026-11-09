@@ -1,0 +1,6 @@
+.claude-plugin/types/
+*.log
+toolkitty-exports/
+.DS_Store
+Thumbs.db
+desktop.ini

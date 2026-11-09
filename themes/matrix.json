@@ -1,0 +1,34 @@
+{
+  "id": "matrix",
+  "name": "Matrix",
+  "aurora": {
+    "idle": [
+      "#00ff66",
+      "#00b34a",
+      "#007a33"
+    ],
+    "working": [
+      "#39ff14",
+      "#00e676",
+      "#00c853"
+    ],
+    "warn": [
+      "#c6ff00",
+      "#aeea00",
+      "#76ff03"
+    ],
+    "danger": [
+      "#ff3d3d",
+      "#ff6e40",
+      "#c6ff00"
+    ]
+  },
+  "receipt": {
+    "footer": "WAKE UP, NEO",
+    "accent": "#00ff66"
+  },
+  "buddy": {
+    "frame": "#00ff66",
+    "accent": "#39ff14"
+  }
+}

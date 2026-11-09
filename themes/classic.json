@@ -1,0 +1,34 @@
+{
+  "id": "classic",
+  "name": "Classic",
+  "aurora": {
+    "idle": [
+      "#0ea5e9",
+      "#14b8a6",
+      "#2563eb"
+    ],
+    "working": [
+      "#8b5cf6",
+      "#d946ef",
+      "#6366f1"
+    ],
+    "warn": [
+      "#f59e0b",
+      "#fb923c",
+      "#d97706"
+    ],
+    "danger": [
+      "#ef4444",
+      "#f43f5e",
+      "#f97316"
+    ]
+  },
+  "receipt": {
+    "footer": "",
+    "accent": "#d97757"
+  },
+  "buddy": {
+    "frame": "",
+    "accent": "#e5484d"
+  }
+}

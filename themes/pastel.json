@@ -1,0 +1,34 @@
+{
+  "id": "pastel",
+  "name": "Pastel",
+  "aurora": {
+    "idle": [
+      "#a5d8ff",
+      "#b2f2bb",
+      "#d0bfff"
+    ],
+    "working": [
+      "#d0bfff",
+      "#fcc2d7",
+      "#a5d8ff"
+    ],
+    "warn": [
+      "#ffec99",
+      "#ffd8a8",
+      "#fcc2d7"
+    ],
+    "danger": [
+      "#ffa8a8",
+      "#fcc2d7",
+      "#ffd8a8"
+    ]
+  },
+  "receipt": {
+    "footer": "STAY SOFT",
+    "accent": "#f783ac"
+  },
+  "buddy": {
+    "frame": "#c4a7ff",
+    "accent": "#f783ac"
+  }
+}
