@@ -34,8 +34,12 @@ export type SavingsData = { tokens: number; usd: number; days: number[] }
 export type SafetyData = { total: number; families: Record<string, number> }
 /** The newest trophy: its icon, title and date (YYYY-MM-DD); null while there is none. */
 export type AchievementData = { icon: string; title: string; date: string } | null
-/** The companion: species, rarity, stage 1..3 and XP (minutes worked); null while there is none. */
-export type PetData = { species: Species; rarity: Rarity; shiny: boolean; stage: 1 | 2 | 3; xp: number } | null
+/** The buddy's pose, as `buddy:mood` stores it (the same word the buddy pane shows). */
+export type PetMood = 'idle' | 'working' | 'celebrating' | 'worried' | 'sleeping' | 'guarding' | 'chasing'
+export const PET_MOODS: readonly PetMood[] = ['idle', 'working', 'celebrating', 'worried', 'sleeping', 'guarding', 'chasing']
+const isPetMood = (v: unknown): v is PetMood => typeof v === 'string' && (PET_MOODS as readonly string[]).includes(v)
+/** The companion: species, rarity, stage 1..3, XP (minutes worked) and its current pose; null while there is none. */
+export type PetData = { species: Species; rarity: Rarity; shiny: boolean; stage: 1 | 2 | 3; xp: number; mood: PetMood } | null
 
 export type CardDataMap = { savings: SavingsData; safety: SafetyData; achievement: AchievementData; pet: PetData }
 
@@ -87,6 +91,13 @@ const W = {
   stage1: { en: 'hatchling', he: 'גוזל', es: 'cría', fr: 'bébé', ru: 'птенец', zh: '幼崽', ja: 'ひな', pt: 'filhote', de: 'Schlüpfling', ko: '새끼' },
   stage2: { en: 'companion', he: 'מלווה', es: 'compañero', fr: 'compagnon', ru: 'спутник', zh: '伙伴', ja: 'コンパニオン', pt: 'companheiro', de: 'Begleiter', ko: '동료' },
   stage3: { en: 'veteran', he: 'ותיק', es: 'veterano', fr: 'vétéran', ru: 'ветеран', zh: '资深', ja: 'ベテラン', pt: 'veterano', de: 'Veteran', ko: '베테랑' },
+  mIdle: { en: 'calm', he: 'רגוע', es: 'tranquilo', fr: 'tranquille', ru: 'спокоен', zh: '平静', ja: 'のんびり', pt: 'tranquilo', de: 'entspannt', ko: '한가함' },
+  mWorking: { en: 'typing', he: 'מקליד', es: 'tecleando', fr: 'en train de taper', ru: 'печатает', zh: '打字中', ja: '入力中', pt: 'digitando', de: 'tippt', ko: '입력 중' },
+  mCelebrating: { en: 'celebrating', he: 'חוגג', es: 'celebrando', fr: 'en fête', ru: 'празднует', zh: '庆祝中', ja: 'お祝い中', pt: 'comemorando', de: 'feiernd', ko: '축하 중' },
+  mWorried: { en: 'worried', he: 'מודאג', es: 'preocupado', fr: 'inquiet', ru: 'тревожится', zh: '担心', ja: '心配', pt: 'preocupado', de: 'besorgt', ko: '걱정됨' },
+  mSleeping: { en: 'asleep', he: 'ישן', es: 'dormido', fr: 'endormi', ru: 'спит', zh: '睡着了', ja: '睡眠中', pt: 'dormindo', de: 'schlafend', ko: '자는 중' },
+  mGuarding: { en: 'on guard', he: 'על המשמר', es: 'en guardia', fr: 'en garde', ru: 'на страже', zh: '警戒中', ja: '警戒中', pt: 'de guarda', de: 'auf der Hut', ko: '경계 중' },
+  mChasing: { en: 'chasing its tail', he: 'רודף אחרי הזנב', es: 'persiguiendo su cola', fr: 'court après sa queue', ru: 'гоняется за хвостом', zh: '追着尾巴转', ja: 'しっぽ追いかけ中', pt: 'correndo atrás do rabo', de: 'jagt den eigenen Schwanz', ko: '꼬리 쫓는 중' },
   shiny: { en: 'shiny', he: 'נוצץ', es: 'brillante', fr: 'chromatique', ru: 'сияющий', zh: '闪光', ja: 'シャイニー', pt: 'brilhante', de: 'schillernd', ko: '빛나는' },
   // post texts
   postSavings: {
@@ -301,6 +312,28 @@ const FAMILY_WORD: Record<string, Tx> = {
 export const speciesName = (s: Species, lang: Lang): string => (SPECIES_NAMES[lang] ?? SPECIES_NAMES.en)[SPECIES_ORDER.indexOf(s)] ?? s
 export const rarityName = (r: Rarity, lang: Lang): string => (RARITY_NAMES[lang] ?? RARITY_NAMES.en)[RARITY_ORDER.indexOf(r)] ?? r
 const stageWord = (n: 1 | 2 | 3, lang: Lang): string => tx(n === 1 ? W.stage1 : n === 2 ? W.stage2 : W.stage3, lang)
+const MOOD_WORD: Readonly<Record<PetMood, Tx>> = { idle: W.mIdle, working: W.mWorking, celebrating: W.mCelebrating, worried: W.mWorried, sleeping: W.mSleeping, guarding: W.mGuarding, chasing: W.mChasing }
+const moodWord = (m: PetMood, lang: Lang): string => tx(MOOD_WORD[m], lang)
+
+/** The pose's emblem beside the silhouette (static: cards never animate), in card coordinates; empty for the calm pose. */
+function poseEmblem(m: PetMood, accent: string): string {
+  switch (m) {
+    case 'guarding':
+      return `<g id="pose-shield" transform="translate(370 420) scale(1.6)"><path d="M0 -26L24 -17V2C24 16 13 27 0 32C-13 27 -24 16 -24 2V-17Z" fill="#4c8dff" stroke="#e2ecff" stroke-width="2.5"/><path d="M-10 2L-3 9L11 -7" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`
+    case 'chasing':
+      return `<g id="pose-loop">${[0, 1, 2, 3, 4, 5].map(i => `<circle cx="${Math.round(250 + 150 * Math.cos((i * Math.PI) / 3))}" cy="${Math.round(430 + 50 * Math.sin((i * Math.PI) / 3))}" r="7" fill="#ffd166" opacity="${(0.25 + i * 0.15).toFixed(2)}"/>`).join('')}</g>`
+    case 'sleeping':
+      return `<g id="pose-zzz" font-family="sans-serif" font-weight="700" fill="#cbd5ff"><text x="350" y="300" font-size="40">Z</text><text x="380" y="262" font-size="52">Z</text><text x="420" y="214" font-size="64">Z</text></g>`
+    case 'celebrating':
+      return `<g id="pose-confetti">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<rect x="${110 + i * 40}" y="${150 + (i % 3) * 38}" width="12" height="18" rx="3" fill="${['#ff6b6b', '#ffd166', '#4cc38a', '#4c8dff'][i % 4]}" transform="rotate(${-30 + i * 9} ${116 + i * 40} ${159 + (i % 3) * 38})"/>`).join('')}</g>`
+    case 'worried':
+      return `<g id="pose-drop" transform="translate(372 300) scale(2.2)"><path d="M0 -10C5 -3 8 1 8 5A8 8 0 0 1 -8 5C-8 1 -5 -3 0 -10z" fill="#7dd3fc" stroke="#e0f2fe" stroke-width="1.2"/></g>`
+    case 'working':
+      return `<g id="pose-typing">${[0, 1, 2].map(i => `<circle cx="${330 + i * 30}" cy="300" r="9" fill="${accent}" opacity="${(0.35 + i * 0.3).toFixed(2)}"/>`).join('')}</g>`
+    default:
+      return ''
+  }
+}
 
 // ---------- redaction ----------
 
@@ -613,10 +646,12 @@ function petBody(d: PetData, th: Theme, lang: Lang): string {
   let out = `<ellipse cx="250" cy="508" rx="${Math.round(60 * scale)}" ry="10" fill="#000000" opacity=".3"/>`
   out += `<g transform="translate(250 504) scale(${scale})">${SILHOUETTE[d.species](color, BASE)}</g>`
   if (d.shiny) out += `<text x="360" y="200" font-size="46" fill="#ffc83d">✦</text><text x="120" y="250" font-size="30" fill="#ffc83d">✦</text>`
+  const mood: PetMood = isPetMood(d.mood) ? d.mood : 'idle' // older callers may hand a pet without a pose
+  out += poseEmblem(mood, c.accent)
   const name = speciesName(d.species, lang)
   out += `<text x="450" y="260" font-size="${[...name].length > 11 ? 64 : 84}" font-weight="800" fill="#ffffff">${esc(name)}</text>`
   out += `<text x="450" y="318" font-size="34" font-weight="700" fill="${color}">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}  ${esc(rarityName(d.rarity, lang))}${d.shiny ? ` · ${esc(tx(W.shiny, lang))}` : ''}</text>`
-  out += `<text x="450" y="372" font-size="28" fill="#c4cbd6">${esc(tx(W.stage, lang, { n: d.stage }))} · ${esc(stageWord(d.stage, lang))}</text>`
+  out += `<text x="450" y="372" font-size="28" fill="#c4cbd6">${esc(tx(W.stage, lang, { n: d.stage }))} · ${esc(stageWord(d.stage, lang))} · ${esc(moodWord(mood, lang))}</text>`
   out += `<text x="450" y="486" font-size="84" font-weight="800" fill="${c.accent}">${esc(compactNum(finite(d.xp)))}</text>`
   out += `<text x="${450 + 24 + String(compactNum(finite(d.xp))).length * 46}" y="486" font-size="30" font-weight="700" letter-spacing="3" fill="#8b95a5">XP</text>`
   return out
@@ -842,11 +877,11 @@ export function rollPet(seed: number): { species: Species; rarity: Rarity; shiny
   return { species, rarity, shiny }
 }
 
-/** Pet card data from `buddy:seed` and `buddy:stage` and the minutes worked; null when there is no seed. */
-export function petFromStore(seed: unknown, stage: unknown, minutes: number): PetData {
+/** Pet card data from `buddy:seed`, `buddy:stage`, the minutes worked and `buddy:mood` (calm when unknown); null when there is no seed. */
+export function petFromStore(seed: unknown, stage: unknown, minutes: number, mood?: unknown): PetData {
   if (typeof seed !== 'number' || !Number.isFinite(seed) || seed <= 0) return null
   const st = stage === 3 ? 3 : stage === 2 ? 2 : 1
-  return { ...rollPet(seed), stage: st, xp: Math.max(0, Math.round(minutes)) }
+  return { ...rollPet(seed), stage: st, xp: Math.max(0, Math.round(minutes)), mood: isPetMood(mood) ? mood : 'idle' }
 }
 
 /** Minutes worked, summed over `week-heatmap:days` ({ key: { ms } }). */

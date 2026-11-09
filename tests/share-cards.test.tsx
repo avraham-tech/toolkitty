@@ -143,8 +143,12 @@ test('data builders read the stores defensively', () => {
   expect(petFromStore(undefined, 2, 10)).toBeNull()
   expect(petFromStore(0, 2, 10)).toBeNull()
   const pet = petFromStore(SEED, 3, 125.4)
-  expect(pet).toEqual({ ...PET, stage: 3, xp: 125 })
+  expect(pet).toEqual({ ...PET, stage: 3, xp: 125, mood: 'idle' })
   expect(petFromStore(SEED, 'x', 0)?.stage).toBe(1)
+  // the pose comes from buddy:mood; anything unknown is the calm pose
+  expect(petFromStore(SEED, 2, 0, 'guarding')?.mood).toBe('guarding')
+  expect(petFromStore(SEED, 2, 0, 'bogus')?.mood).toBe('idle')
+  expect(petFromStore(SEED, 2, 0, 7)?.mood).toBe('idle')
   // the same seed always gives the same companion; the species and rarity come from the closed sets
   expect(rollPet(SEED)).toEqual(rollPet(SEED))
   const seen = new Set<string>()
@@ -159,7 +163,7 @@ test('data builders read the stores defensively', () => {
 const SAVINGS = { tokens: 1_234_567, usd: 3.7, days: [0, 100, 250, 0, 500, 900, 1000] }
 const SAFETY = { total: 7, families: { secrets: 3, destructive: 2, edits: 1, ci: 1 } }
 const TROPHY = { icon: '🚀', title: 'Shipped it', date: '2026-11-08' }
-const PETCARD = { species: 'fox' as const, rarity: 'epic' as const, shiny: false, stage: 2 as const, xp: 5400 }
+const PETCARD = { species: 'fox' as const, rarity: 'epic' as const, shiny: false, stage: 2 as const, xp: 5400, mood: 'idle' as const }
 
 const DATA = { savings: SAVINGS, safety: SAFETY, achievement: TROPHY, pet: PETCARD }
 
@@ -204,6 +208,20 @@ test('every card is a 1200x630 SVG under 24 KB with its key texts, in every them
   expect(pet).toContain('Stage 2')
   expect(pet).toContain('5.4K')
   expect(pet).toContain('XP')
+  // the pose: the calm card carries no emblem; every other pose draws its own, statically, and names itself
+  expect(pet).toContain('· calm')
+  expect(pet).not.toContain('id="pose-')
+  const guard = cardSvg('pet', { ...PETCARD, mood: 'guarding' }, th)
+  expect(guard).toContain('id="pose-shield"')
+  expect(guard).toContain('· on guard')
+  expect(guard).not.toContain('<animate')
+  expect(guard.length).toBeLessThan(24 * 1024)
+  expect(cardSvg('pet', { ...PETCARD, mood: 'chasing' }, th)).toContain('id="pose-loop"')
+  expect(cardSvg('pet', { ...PETCARD, mood: 'sleeping' }, th)).toContain('id="pose-zzz"')
+  expect(cardSvg('pet', { ...PETCARD, mood: 'celebrating' }, th)).toContain('id="pose-confetti"')
+  expect(cardSvg('pet', { ...PETCARD, mood: 'worried' }, th)).toContain('id="pose-drop"')
+  expect(cardSvg('pet', { ...PETCARD, mood: 'working' }, th)).toContain('id="pose-typing"')
+  expect(cardSvg('pet', { ...PETCARD, mood: 'guarding' }, th, 'he')).toContain('על המשמר')
   expect(pet).toContain('★★★★☆')
 
   // every species draws, and every language fits the size budget

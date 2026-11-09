@@ -800,9 +800,9 @@ test('a denied tool call stops the chain before the tool and the after-hooks', {
   const r = await $.tool.call({ tool: 'Bash', command: 'rm -rf /' })
   expect(typeof (r as any).deny).toBe('string')
   expect((r as any).deny.length).toBeGreaterThan(0)
-  // buddy's after hook never saw it: no flash, still idle
+  // buddy's after hook never saw it: no worried flash (the live ticker's "working" signal may still be on the bus, so idle or working)
   const alt = (await ui.find({ type: 'Svg' }))!.props['alt'] as string
-  expect(alt).toMatch(/feeling idle$/)
+  expect(alt).toMatch(/feeling (idle|working)$/)
   // a harmless call goes through
   w.toolResult = { result: {} }
   const ok = await $.tool.call({ tool: 'Bash', command: 'echo hi' })

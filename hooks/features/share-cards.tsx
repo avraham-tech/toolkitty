@@ -211,7 +211,7 @@ async function loadAll($: EngineInterface): Promise<Loaded> {
   const savings = savingsFromDays(await $.store.get('savings:days'), now)
   const safety = safetyFromIncidents(await $.store.get(`incidents:${cwd}`), now)
   const latest = latestAchievement(await $.store.get('achievements:unlocked'), ACHIEVEMENTS.map(a => ({ id: a.id, icon: a.icon, title: t(a.title) })))
-  const pet = petFromStore(await $.store.get('buddy:seed'), await $.store.get('buddy:stage'), minutesWorked(await $.store.get('week-heatmap:days')))
+  const pet = petFromStore(await $.store.get('buddy:seed'), await $.store.get('buddy:stage'), minutesWorked(await $.store.get('week-heatmap:days')), await $.store.get('buddy:mood'))
 
   // The only free text on a card is the trophy's title: scrub it, project name included unless the person allowed it.
   const none: Counts = { paths: 0, secrets: 0, projects: 0 }

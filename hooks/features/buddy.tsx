@@ -8,6 +8,8 @@ import { ICONS, paneHeader } from '../ui'
 import type { Chip, Level } from '../ui'
 import { allEvidence } from '../evidence'
 import type { Evidence } from '../evidence'
+import { current, ofKind } from '../signals'
+import type { Signal } from '../signals'
 import type { Incidents } from '../shared'
 import { BUILTIN_THEMES } from '../themes'
 import type { Theme } from '../themes'
@@ -117,6 +119,8 @@ const T = {
   celebrating: { en: 'celebrating', he: 'חוגג', es: 'celebrando', fr: 'en fête', ru: 'празднует', zh: '庆祝中', ja: 'お祝い中', pt: 'comemorando', de: 'feiernd', ko: '축하 중' },
   worried: { en: 'worried', he: 'מודאג', es: 'preocupado', fr: 'inquiet', ru: 'тревожится', zh: '担心', ja: '心配', pt: 'preocupado', de: 'besorgt', ko: '걱정됨' },
   sleeping: { en: 'sleeping', he: 'ישן', es: 'durmiendo', fr: 'endormi', ru: 'спит', zh: '睡觉中', ja: '睡眠中', pt: 'dormindo', de: 'schlafend', ko: '자는 중' },
+  guarding: { en: 'on guard', he: 'על המשמר', es: 'en guardia', fr: 'en garde', ru: 'на страже', zh: '警戒中', ja: '警戒中', pt: 'de guarda', de: 'auf der Hut', ko: '경계 중' },
+  chasing: { en: 'chasing its tail', he: 'רודף אחרי הזנב', es: 'persiguiendo su cola', fr: 'court après sa queue', ru: 'гоняется за хвостом', zh: '追着尾巴转', ja: 'しっぽ追いかけ中', pt: 'correndo atrás do rabo', de: 'jagt den eigenen Schwanz', ko: '꼬리 쫓는 중' },
   // evolution
   stage1: { en: 'hatchling', he: 'גוזל', es: 'cría', fr: 'bébé', ru: 'птенец', zh: '幼崽', ja: 'ひな', pt: 'filhote', de: 'Küken', ko: '새끼' },
   stage2: { en: 'companion', he: 'מלווה', es: 'compañero', fr: 'compagnon', ru: 'спутник', zh: '伙伴', ja: '相棒', pt: 'companheiro', de: 'Gefährte', ko: '동료' },
@@ -236,9 +240,33 @@ const T = {
     de: 'Zzz… weck mich für Snacks.|Träume von grünen Tests.|Pst, Schlafenszeit.|Zzz… noch eine Minute…|Schnarche leise.',
     ko: 'Zzz… 간식 시간에 깨워 줘.|초록색 테스트 꿈을 꾸는 중.|쉿, 낮잠 시간.|Zzz… 1분만 더…|새근새근 코를 골아.',
   },
+  guardingLines: {
+    en: 'Not on my watch.|Shield up. Nothing gets past me.|That one stays blocked.|I saw that coming.|Guard duty. Carry on.',
+    he: 'לא במשמרת שלי.|מגן למעלה. כלום לא עובר אותי.|זה נשאר חסום.|ראיתי את זה בא.|תורנות שמירה. תמשיכו.',
+    es: 'No mientras yo vigile.|Escudo arriba. Nada pasa de aquí.|Eso se queda bloqueado.|Lo vi venir.|Turno de guardia. Sigan.',
+    fr: "Pas sous ma garde.|Bouclier levé. Rien ne passe.|Celui-là reste bloqué.|Je l'ai vu venir.|De garde. Continuez.",
+    ru: 'Только не в мою смену.|Щит поднят. Мимо меня ничего не пройдёт.|Это останется заблокированным.|Я это предвидел.|На страже. Продолжайте.',
+    zh: '有我在，别想。|盾牌举起。什么都别想过去。|那个继续拦着。|我早看出来了。|站岗中。你们继续。',
+    ja: 'ぼくの番では通さないよ。|シールド展開。何も通さない。|あれはブロックのまま。|来ると思ってた。|見張り中。続けてどうぞ。',
+    pt: 'Não no meu turno.|Escudo erguido. Nada passa por mim.|Aquele fica bloqueado.|Eu vi isso vindo.|De guarda. Podem continuar.',
+    de: 'Nicht unter meiner Aufsicht.|Schild hoch. Hier kommt nichts durch.|Das bleibt blockiert.|Hab ich kommen sehen.|Wachdienst. Weitermachen.',
+    ko: '내가 지키는 동안은 안 돼.|방패 올림. 아무것도 못 지나가.|그건 계속 막아 둘게.|올 줄 알았어.|경비 근무 중. 계속하세요.',
+  },
+  chasingLines: {
+    en: "Round and round we go…|Haven't we been here before?|Same tail, third lap.|Dizzy yet? I am.|Maybe try a different angle?",
+    he: 'סיבוב ועוד סיבוב…|לא היינו כאן כבר?|אותו זנב, הקפה שלישית.|כבר מסוחרר? אני כן.|אולי לנסות מזווית אחרת?',
+    es: 'Vueltas y más vueltas…|¿No hemos pasado ya por aquí?|La misma cola, tercera vuelta.|¿Mareado? Yo sí.|¿Probamos otro ángulo?',
+    fr: "Et on tourne, on tourne…|On n'est pas déjà passés par là ?|Même queue, troisième tour.|Pas encore le tournis ? Moi si.|Et si on changeait d'angle ?",
+    ru: 'Кругом, кругом…|Мы тут уже были?|Тот же хвост, третий круг.|Голова ещё не кружится? У меня да.|Может, зайти с другой стороны?',
+    zh: '转啊转啊转……|我们是不是来过这儿？|同一条尾巴，第三圈了。|晕了吗？我晕了。|要不换个角度试试？',
+    ja: 'ぐるぐるぐる…|ここ、前にも来なかった？|同じしっぽ、三周目。|目が回ってきた？ぼくは回ってる。|別の角度から試してみる？',
+    pt: 'Volta e volta e volta…|A gente já não passou por aqui?|Mesmo rabo, terceira volta.|Já ficou tonto? Eu sim.|Que tal tentar por outro ângulo?',
+    de: 'Immer im Kreis…|Waren wir hier nicht schon mal?|Derselbe Schwanz, dritte Runde.|Schon schwindelig? Mir schon.|Vielleicht mal anders rangehen?',
+    ko: '빙글빙글 돌고 또 돌고…|여기 전에 와 본 적 있지 않아?|같은 꼬리, 세 바퀴째.|어지러워? 난 어지러워.|다른 각도로 해 볼까?',
+  },
 } as const
 
-type Mood = 'idle' | 'working' | 'celebrating' | 'worried' | 'sleeping'
+type Mood = 'idle' | 'working' | 'celebrating' | 'worried' | 'sleeping' | 'guarding' | 'chasing'
 type Species = 'cat' | 'fox' | 'owl' | 'octopus' | 'dragon' | 'axolotl' | 'penguin' | 'capybara' | 'raccoon' | 'robot' | 'ghost' | 'slime'
 type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
 type State = { seed: number; name: string; mood: Mood; line: number; ms: number; streak: boolean; xp: number }
@@ -349,7 +377,7 @@ function face(m: Mood, y: number, dx: number, o: FaceOpts = {}): string {
   let brows = ''
   if (m === 'worried') {
     brows = `<path d="M${l - 7} ${y - 8}L${l + 4} ${y - 14}M${rt + 7} ${y - 8}L${rt - 4} ${y - 14}" fill="none" stroke="${ink}" stroke-width="2.5" stroke-linecap="round"/>`
-  } else if (m === 'working') {
+  } else if (m === 'working' || m === 'guarding') {
     brows = `<path d="M${l - 6} ${y - 12}L${l + 5} ${y - 8}M${rt + 6} ${y - 12}L${rt - 5} ${y - 8}" fill="none" stroke="${ink}" stroke-width="2.5" stroke-linecap="round"/>`
   }
   let mouth = ''
@@ -357,7 +385,8 @@ function face(m: Mood, y: number, dx: number, o: FaceOpts = {}): string {
     const my = y + (o.mouthDy ?? 10)
     const ms = `fill="none" stroke="${mouthInk}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"`
     if (m === 'idle') mouth = `<path d="M-5 ${my}q5 5 10 0" ${ms}/>`
-    else if (m === 'working') mouth = `<path d="M-4 ${my + 1}h8" ${ms}/>`
+    else if (m === 'working' || m === 'guarding') mouth = `<path d="M-4 ${my + 1}h8" ${ms}/>`
+    else if (m === 'chasing') mouth = `<circle cx="0" cy="${my + 1}" r="3" ${ms}/>`
     else if (m === 'celebrating') mouth = `<path d="M-7 ${my - 2}q7 14 14 0z" fill="${mouthInk}"/><path d="M-3 ${my + 6}q3 -3 6 0q-3 2.5 -6 0z" fill="#ff7b8f"/>`
     else if (m === 'worried') mouth = `<path d="M-6 ${my + 2}q3 -4 6 0t6 0" ${ms}/>`
     else mouth = `<path d="M-3 ${my}q3 3 6 0" ${ms}/>`
@@ -484,6 +513,23 @@ function extras(m: Mood): string {
       `<animateTransform attributeName="transform" type="translate" values="0 0;0 16" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.2;.7;1" dur="1.5s" repeatCount="indefinite"/></path></g>`
     )
   }
+  if (m === 'guarding') {
+    // a shield held up in front, with a steady glow: the pose of a prevented incident
+    return (
+      `<g id="shield" transform="translate(178 118)"><path d="M0 -26L24 -17V2C24 16 13 27 0 32C-13 27 -24 16 -24 2V-17Z" fill="#4c8dff" stroke="#e2ecff" stroke-width="2.5">` +
+      `<animate attributeName="opacity" values=".85;1;.85" dur="2s" repeatCount="indefinite"/></path>` +
+      `<path d="M-10 2L-3 9L11 -7" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`
+    )
+  }
+  if (m === 'chasing') {
+    // a ring of motion dots: the loop the buddy is running in
+    return [0, 1, 2, 3, 4, 5]
+      .map(i => {
+        const a = (i * Math.PI) / 3
+        return `<circle id="lap-${i}" cx="${Math.round(120 + 70 * Math.cos(a))}" cy="${Math.round(120 + 26 * Math.sin(a))}" r="3.5" fill="#ffd166"><animate attributeName="opacity" values=".15;1;.15" dur="1.6s" begin="${-i * 0.27}s" repeatCount="indefinite"/></circle>`
+      })
+      .join('')
+  }
   if (m === 'sleeping') {
     return [0, 1, 2]
       .map(
@@ -500,6 +546,8 @@ function moodAnim(m: Mood): string {
   if (m === 'sleeping') return `<animateTransform attributeName="transform" type="scale" values="1 1;1.02 1.03;1 1" keyTimes="0;.5;1" dur="5s" repeatCount="indefinite"/>`
   if (m === 'working') return `<animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="0.6s" repeatCount="indefinite"/>`
   if (m === 'celebrating') return `<animateTransform attributeName="transform" type="translate" values="0 0;0 -28;0 0" keyTimes="0;.5;1" calcMode="spline" keySplines=".25 .6 .35 1;.65 0 .75 .4" dur="0.9s" repeatCount="indefinite"/>`
+  if (m === 'guarding') return `<animateTransform attributeName="transform" type="scale" values="1 1;1.02 0.98;1 1" keyTimes="0;.5;1" dur="2s" repeatCount="indefinite"/>`
+  if (m === 'chasing') return `<animateTransform attributeName="transform" type="rotate" values="-12 0 -40;12 0 -40;-12 0 -40" keyTimes="0;.5;1" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1" dur="1.6s" repeatCount="indefinite"/>`
   return `<animateTransform attributeName="transform" type="translate" values="-1.5 0;1.5 0;-1.5 0" dur="0.16s" repeatCount="indefinite"/>`
 }
 
@@ -592,6 +640,8 @@ const ASCII: Record<Mood, readonly [string, string, string]> = {
   celebrating: ['\\/\\_/\\/', '( ^o^ )', ' > w < '],
   worried: [' /\\_/\\ ', '( ;.; )', ' > ~ < '],
   sleeping: [' /\\_/\\ ', '( -.- )z', ' > _ < '],
+  guarding: [' /\\_/\\ ', '( ò.ó )', '[> ^ <]'],
+  chasing: [' /\\_/\\@', '( @.@ )', ' > o < '],
 }
 
 // ---------- state ----------
@@ -602,17 +652,61 @@ let flash: { mood: 'celebrating' | 'worried'; until: number } | null = null
 let ticker: Timer | undefined
 let ticks = 0
 
-function moodAt(now: number): Mood {
+// ---------- mascot states: what the signals bus says, in order of importance ----------
+
+/** An incident keeps the shield up this long after the guard spoke. */
+const INCIDENT_FRESH_MS = 60_000
+/** A test, build or lint result changes the face this long after it came in. */
+const EVIDENCE_FRESH_MS = FLASH_MS
+/** Context fill (percent) from which the buddy worries. */
+const CONTEXT_WORRY_PCT = 70
+/** Quota use (percent) from which the buddy sleeps to save the rest. */
+const QUOTA_SLEEP_PCT = 90
+
+const valueOf = (s: Signal): number => (typeof s.value === 'number' && Number.isFinite(s.value) ? s.value : 0)
+
+/**
+ * The pose the live signals ask for, or null when they say nothing: shield on a fresh incident,
+ * tail-chasing on a loop, asleep when the quota is nearly used, celebrating or worried on fresh
+ * evidence, worried when the context is filling, typing while a tool is working.
+ */
+function moodFromSignals(items: readonly Signal[], now: number): Mood | null {
+  const incident = ofKind(items, 'incident')[0]
+  if (incident !== undefined && now - incident.at < INCIDENT_FRESH_MS) return 'guarding'
+  if (ofKind(items, 'loop').length > 0) return 'chasing'
+  if (ofKind(items, 'quota').some(s => valueOf(s) >= QUOTA_SLEEP_PCT)) return 'sleeping'
+  const evidence = ofKind(items, 'evidence')[0]
+  if (evidence !== undefined && now - evidence.at < EVIDENCE_FRESH_MS) return valueOf(evidence) >= 1 ? 'celebrating' : 'worried'
+  if (ofKind(items, 'context').some(s => valueOf(s) >= CONTEXT_WORRY_PCT)) return 'worried'
+  if (ofKind(items, 'working').length > 0) return 'working'
+  return null
+}
+
+function moodAt(now: number, items: readonly Signal[]): Mood {
+  const asked = moodFromSignals(items, now)
+  if (asked === 'guarding' || asked === 'chasing') return asked
   if (flash !== null && now < flash.until) return flash.mood
+  if (asked !== null) return asked
   if (isWorking) return 'working'
   if (now - lastActivity > IDLE_MS) return 'sleeping'
   return 'idle'
 }
 
+/** The Minimal profile keeps the buddy calm: no reactions to the bus (the pose stays the quiet one). */
+async function reactsToBus($: EngineInterface): Promise<boolean> {
+  return (await $.store.get('profile')) !== 'minimal'
+}
+
 async function sync($: EngineInterface): Promise<void> {
-  const mood = moodAt(await $.clock.now())
+  const now = await $.clock.now()
+  const items = (await reactsToBus($)) ? await current($, now) : []
+  const mood = moodAt(now, items)
   const cur = await read($, buddy)
-  if (cur.mood !== mood) await update($, buddy, s => ({ ...s, mood, line: s.line + 1 }))
+  if (cur.mood !== mood) {
+    await update($, buddy, s => ({ ...s, mood, line: s.line + 1 }))
+    // the share card draws the same pose
+    await $.store.set('buddy:mood', mood)
+  }
 }
 
 async function touch($: EngineInterface): Promise<void> {
@@ -634,6 +728,14 @@ async function ensure($: EngineInterface): Promise<void> {
 }
 
 const nameOf = (s: State): string => (s.name === '' ? t(T.defaultName) : s.name)
+
+/** Picks up a name written to the store by someone else (the demo's "Pixel", or its removal) when the pane opens. */
+async function reloadName($: EngineInterface): Promise<void> {
+  const stored = await $.store.get('buddy:name')
+  const name = typeof stored === 'string' ? stored : ''
+  const cur = await read($, buddy)
+  if (cur.name !== name) await update($, buddy, s => ({ ...s, name }))
+}
 
 // ---------- evolution: total hours and the streak come from the heatmap's stored days ----------
 
@@ -815,7 +917,7 @@ export async function renderBand($: EngineInterface, e: BandInput): Promise<Band
   )
 }
 
-const moodLevel = (mood: Mood): Level => (mood === 'worried' ? 'warn' : mood === 'celebrating' ? 'info' : 'ok')
+const moodLevel = (mood: Mood): Level => (mood === 'worried' || mood === 'guarding' || mood === 'chasing' ? 'warn' : mood === 'celebrating' ? 'info' : 'ok')
 
 /** The short band form: the pet's name, only while it has something to show (not idle or asleep). */
 export async function renderChip($: EngineInterface, e: BandInput): Promise<Chip | null> {
@@ -847,6 +949,7 @@ export function register(on: On) {
   on('command.run', { command: 'buddy' }, async ($, e) => {
     if (!(await isOn($, feature))) return { text: t(T.off) }
     await ensure($)
+    await reloadName($)
     await refreshProgress($)
     const args = e.args.trim()
     if (/^name(\s|$)/i.test(args)) {

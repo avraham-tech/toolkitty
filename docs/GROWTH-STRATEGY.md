@@ -21,7 +21,7 @@ Installs (GitHub clones/stars), activation (wizard completed), weekly active (re
 ## Rules
 Never fabricate savings or incidents in marketing material; demos are labelled DEMO; nothing is uploaded automatically; no user data in cards without consent.
 
-## Mascot as system state (planned, after the rename)
+## Mascot as system state (implemented 2026-11-09)
 The cat is the official mascot, not just an icon. The buddy pane and chip react to the signals bus with a static pose per state (no animation needed; off in the Minimal profile):
 
 | State (signal) | Cat |
@@ -34,7 +34,7 @@ The cat is the official mascot, not just an icon. The buddy pane and chip react 
 | `loop` | chases its tail |
 | `quota` ≥ 90 | falls asleep |
 
-People share a cat stopping Claude from deleting a folder; nobody shares a token meter. Poses as inline SVG in buddy.tsx; the share card uses the same pose.
+People share a cat stopping Claude from deleting a folder; nobody shares a token meter. Poses as inline SVG in buddy.tsx (the shield and the tail-chase keep a light animation in the pane, like the five older moods); the pet share card draws the same pose as a static emblem plus the pose word. Priority when several signals are live: shield, loop, quota, evidence, context, working. The Minimal profile does not react to the bus.
 
 ## Launch line
 "Your Claude Code has nine lives. Make them count." (nine lives ↔ guardrails against fatal mistakes). Campaign line only; the product tagline stays "Your coding companion for Claude Code".
